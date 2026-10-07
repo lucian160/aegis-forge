@@ -25,7 +25,7 @@ export default function Register() {
     } catch (requestError) {
       setError(requestError.status === 503
         ? 'Your account may have been created, but we could not send the verification email. Try resending it from sign in later.'
-        : requestError.status === 400
+        : requestError.status >= 400 && requestError.status < 500
           ? requestError.message
           : 'We could not create your account. Please try again later.');
     } finally {
