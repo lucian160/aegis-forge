@@ -44,19 +44,28 @@ function createApp() {
 export function startServer(port = config.port) {
   return new Promise((resolve, reject) => {
     const app = createApp();
-    const server = app.listen(port, async () => {
+
+    const server = app.listen(port, '0.0.0.0', async () => {
       try {
         validateProductionEnvironment();
         await connectDatabase();
-        console.info(`AEGIS Forge API listening on http://localhost:${port}/api/${config.apiVersion}/health`);
+
+        console.info(
+          `AEGIS Forge API listening on 0.0.0.0:${port}/api/${config.apiVersion}/health`,
+        );
+
         resolve(server);
       } catch (error) {
+        console.error('Backend startup failed:', error);
         server.close(() => reject(error));
       }
     });
 
+    server.on('error', reject);
+
     const shutdown = async (signal) => {
       console.info(`${signal} received. Closing server.`);
+
       server.close(async () => {
         await disconnectDatabase();
         process.exit(0);
