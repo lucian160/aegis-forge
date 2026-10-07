@@ -121,8 +121,8 @@ export default function DepartmentWorkspace() {
         if (active) {
           setError(requestError.message);
           setDepartment({ id: definition.id, name: definition.name, code: definition.code, lead: definition.lead, members: definition.members, description: definition.description });
-          setProjects(fallbackRecords(definition));
-          setTasks(fallbackRecords(definition).map((project, index) => ({ id: `${definition.id}-task-${index + 1}`, title: `${project.name} work`, project: project.name, assignee: definition.lead, department: definition.name, priority: index === 0 ? 'High' : 'Medium', status: definition.statuses[Math.min(index + 1, definition.statuses.length - 1)], dueDate: 'No due date', labels: [] })));
+          setProjects([]);
+          setTasks([]);
         }
       })
       .finally(() => {
@@ -159,7 +159,7 @@ export default function DepartmentWorkspace() {
         <div className="department-header-actions"><span className="department-code">{definition.code}</span>{canManage && <Button variant="primary" icon="plus">New work item</Button>}</div>
       </header>
 
-      {error && <p className="auth-error" role="alert">Unable to load live workspace data: {error}. Showing the existing department fallback.</p>}
+      {error && <p className="auth-error" role="alert">Unable to load live workspace data: {error}. No workspace records are available until the backend responds successfully.</p>}
       {loading ? <div className="auth-loading">Loading {definition.name} workspace…</div> : (
         <>
           <section className="department-metrics" aria-label={`${definition.name} overview`}>

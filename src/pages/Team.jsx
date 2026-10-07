@@ -9,6 +9,7 @@ function mapUserToMember(user, departmentsById) {
   return {
     id: user.id,
     name: user.name,
+    roleId: user.roleId,
     role: user.roleId.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
     department: departmentsById.get(user.departmentId) || 'Unassigned',
     location: 'Location unavailable',
@@ -49,7 +50,7 @@ export default function Team() {
     { label: 'Visible members', value: members.length, trend: 'From authorized user records' },
     { label: 'Active accounts', value: members.filter((member) => member.availability === 'Available').length, trend: 'Account status' },
     { label: 'Departments', value: departmentList.length, trend: 'Visible department records' },
-    { label: 'Department leaders', value: members.filter((member) => member.roleId === 'Department Leader').length, trend: 'Current role assignments' },
+    { label: 'Department leaders', value: members.filter((member) => member.roleId === 'department_leader').length, trend: 'Current role assignments' },
   ];
   const departmentSnapshot = departmentList.map((department) => ({
     id: department.id || department._id,
