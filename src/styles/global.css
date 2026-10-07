@@ -1543,7 +1543,8 @@
 }
 
 .application-form input,
-.application-form textarea {
+.application-form textarea,
+.application-form select {
   width: 100%;
   border: 1px solid var(--border-soft);
   border-radius: 9px;
@@ -1555,8 +1556,32 @@
 }
 
 .application-form input:focus,
-.application-form textarea:focus {
+.application-form textarea:focus,
+.application-form select:focus {
   border-color: rgba(139, 255, 176, 0.35);
+}
+
+.recruitment-empty-state {
+  padding: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.recruitment-empty-state a,
+.department-directory-card .position-card-footer a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.department-directory-card {
+  min-height: 190px;
+}
+
+.department-directory-card > p {
+  min-height: 34px;
 }
 
 .file-upload {

@@ -9,8 +9,13 @@ function invalidApplication() {
 
 export async function submitApplication(request, response) {
   const consent = requirePrivacyConsent(request.body?.privacyConsent);
-  const { name, email, phone, portfolio, linkedin, message, positionId } = request.body || {};
-  if ([name, email, message, positionId].some((value) => typeof value !== 'string')) throw invalidApplication();
+  const { name, email, phone, portfolio, linkedin, message, positionId, applicationType, departmentCode } = request.body || {};
+  const isTalentNetwork = applicationType === 'talent';
+  if ([name, email, message].some((value) => typeof value !== 'string')
+    || (isTalentNetwork ? (typeof departmentCode !== 'string' || positionId !== undefined) : typeof positionId !== 'string')
+    || (applicationType !== undefined && applicationType !== 'talent' && applicationType !== 'position')) {
+    throw invalidApplication();
+  }
 
   const normalized = {
     name: name.trim(),
@@ -20,16 +25,20 @@ export async function submitApplication(request, response) {
     linkedin: typeof linkedin === 'string' ? linkedin.trim() : '',
     message: message.trim(),
   };
-  const position = positions.find((item) => item.id === positionId);
-  if (!position || !normalized.name || normalized.name.length > 160
+  const position = isTalentNetwork ? null : positions.find((item) => item.id === positionId);
+  if ((!isTalentNetwork && !position) || !normalized.name || normalized.name.length > 160
     || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email) || normalized.email.length > 254
     || normalized.phone.length > 30 || normalized.portfolio.length > 500 || normalized.linkedin.length > 500
     || !normalized.message || normalized.message.length > 5000) {
     throw invalidApplication();
   }
 
-  const department = await Department.findOne({ code: position.departmentCode, isActive: true }).select('_id');
+  const department = await Department.findOne({
+    code: isTalentNetwork ? departmentCode.trim().toUpperCase() : position.departmentCode,
+    isActive: true,
+  }).select('_id');
   if (!department) {
+    if (isTalentNetwork) throw invalidApplication();
     throw Object.assign(new Error('Applications for this team are not available right now.'), { status: 503 });
   }
 
@@ -39,7 +48,7 @@ export async function submitApplication(request, response) {
     candidatePhone: normalized.phone,
     portfolioUrl: normalized.portfolio,
     linkedInUrl: normalized.linkedin,
-    position: position.title,
+    position: position?.title || 'Talent Network',
     department: department._id,
     notes: normalized.message,
     status: 'Submitted',
