@@ -106,16 +106,24 @@ export async function updateUser(request, response) {
       return response.status(400).json({ error: 'Department identifier is invalid.' });
     }
     nextDepartmentId = rawDepartmentId === null || rawDepartmentId === '' ? null : new mongoose.Types.ObjectId(rawDepartmentId);
+  }
+
+  const resolvedRoleId = hasRoleField ? nextRoleId : user.roleId;
+  const organizationWideRole = ['super_admin', 'organization_leader'].includes(resolvedRoleId);
+  if (organizationWideRole && hasDepartmentField && nextDepartmentId) {
+    return response.status(400).json({ error: 'Super Admin and Organization Leader accounts cannot be assigned to a department.' });
+  }
+  if (organizationWideRole) nextDepartmentId = null;
+
+  if (hasDepartmentField && !organizationWideRole) {
     if (!canAssignUserDepartment(actorRole, actor.departmentId, nextDepartmentId)) {
       await recordDeniedRoleChange(request, user, 'Department assignment outside authorized scope denied');
       return forbidden(response, 'You do not have permission to assign this department.');
     }
-    if (nextDepartmentId && !await Department.exists({ _id: nextDepartmentId })) {
-      return response.status(404).json({ error: 'Department not found.' });
-    }
   }
-
-  const resolvedRoleId = hasRoleField ? nextRoleId : user.roleId;
+  if (nextDepartmentId && !await Department.exists({ _id: nextDepartmentId })) {
+    return response.status(404).json({ error: 'Department not found.' });
+  }
   if (resolvedRoleId === 'department_leader' && !nextDepartmentId) {
     return response.status(400).json({ error: 'A department must be assigned before appointing a Department Leader.' });
   }
@@ -123,27 +131,35 @@ export async function updateUser(request, response) {
   const previousRoleId = user.roleId;
   const previousDepartmentId = user.departmentId || null;
   const roleChanged = hasRoleField && resolvedRoleId !== previousRoleId;
-  const departmentChanged = hasDepartmentField && currentDepartmentId !== nextDepartmentId?.toString();
+  const departmentChanged = currentDepartmentId !== nextDepartmentId?.toString();
+  if (resolvedRoleId === 'department_leader' && nextDepartmentId && (roleChanged || departmentChanged)) {
+    const department = await Department.findById(nextDepartmentId).select('lead');
+    if (department?.lead && department.lead.toString() !== user.id) {
+      return response.status(409).json({ error: 'This department already has an assigned leader. Reassign the current leader before promoting another user.' });
+    }
+  }
   const safeBody = {};
   if (typeof body.name === 'string') safeBody.name = body.name;
   if (hasRoleField) safeBody.roleId = resolvedRoleId;
-  if (hasDepartmentField) safeBody.departmentId = nextDepartmentId;
+  if (hasDepartmentField || departmentChanged) safeBody.departmentId = nextDepartmentId;
   if (body.isActive !== undefined) safeBody.isActive = body.isActive;
   if (body.isVerified !== undefined) safeBody.isVerified = body.isVerified;
   Object.assign(user, safeBody);
   await user.save();
 
-  if (departmentChanged) {
-    if (previousDepartmentId) {
-      await Department.updateOne({ _id: previousDepartmentId }, { $pull: { members: user._id } });
-      await Department.updateOne({ _id: previousDepartmentId, lead: user._id }, { $unset: { lead: 1 } });
-    }
-    if (nextDepartmentId) await Department.updateOne({ _id: nextDepartmentId }, { $addToSet: { members: user._id } });
+  if (previousDepartmentId && (departmentChanged || organizationWideRole)) {
+    await Department.updateOne({ _id: previousDepartmentId }, { $pull: { members: user._id } });
+  }
+  const shouldClearPreviousLead = departmentChanged
+    || previousRoleId === 'department_leader' && resolvedRoleId !== 'department_leader';
+  if (previousDepartmentId && shouldClearPreviousLead) {
+    await Department.updateOne({ _id: previousDepartmentId, lead: user._id }, { $unset: { lead: 1 } });
+  }
+  if (nextDepartmentId && !organizationWideRole && (departmentChanged || roleChanged && resolvedRoleId === 'department_leader')) {
+    await Department.updateOne({ _id: nextDepartmentId }, { $addToSet: { members: user._id } });
   }
   if (resolvedRoleId === 'department_leader' && nextDepartmentId && (roleChanged || departmentChanged)) {
     await Department.updateOne({ _id: nextDepartmentId }, { $set: { lead: user._id }, $addToSet: { members: user._id } });
-  } else if (previousRoleId === 'department_leader' && roleChanged && previousDepartmentId) {
-    await Department.updateOne({ _id: previousDepartmentId, lead: user._id }, { $unset: { lead: 1 } });
   }
   if (departmentChanged) {
     const scopeDepartment = nextDepartmentId || previousDepartmentId || actor.departmentId;

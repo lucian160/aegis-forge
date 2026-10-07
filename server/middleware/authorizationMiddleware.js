@@ -71,7 +71,6 @@ export function canManageResource(request, document) {
 export function filterByDepartment(query, request) {
   if (request.user?.roleId === 'super_admin' || request.user?.roleId === 'organization_leader') return query;
   const departmentId = request.user?.departmentId;
-  if (request.user?.roleId === 'department_leader' && !departmentId) return { ...query, department: new mongoose.Types.ObjectId() };
-  if (!departmentId) return query;
+  if (!departmentId) return { ...query, department: new mongoose.Types.ObjectId() };
   return { ...query, department: departmentId };
 }

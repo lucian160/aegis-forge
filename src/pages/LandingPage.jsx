@@ -74,6 +74,7 @@ export default function LandingPage() {
           <a href="#departments" onClick={closeMenu}>Departments</a>
           <Link to="/work-with-us" onClick={closeMenu}>Careers</Link>
           <a className="landing-nav-contact" href="#contact" onClick={closeMenu}>Contact</a>
+          <Link className="landing-login" to="/register" onClick={closeMenu}>Register</Link>
           <Link className="landing-login" to="/login" onClick={closeMenu}>Login <Icon name="arrow" size={15} /></Link>
         </nav>
       </header>
@@ -89,6 +90,7 @@ export default function LandingPage() {
           <div className="landing-hero-actions">
             <Link className="landing-button landing-button-primary" to="/work-with-us">Join the Team <Icon name="arrow" size={17} /></Link>
             <a className="landing-button landing-button-quiet" href="#contact">Contact Us <span aria-hidden="true">↘</span></a>
+            <Link className="landing-button landing-button-quiet" to="/register">Create Account</Link>
           </div>
         </div>
         <div className="landing-hero-caption"><span>One team, many points of view</span><span>Build · Learn · Improve</span></div>

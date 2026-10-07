@@ -82,14 +82,18 @@ export default function Settings({ initialTab = 'Profile' }) {
     return () => { active = false; };
   }, [activeTab, canViewMembers]);
 
-  const saveMemberChange = async () => {
+  const saveMemberChange = async (departmentId) => {
     if (!pendingChange) return;
     setSavingChange(true);
     setMessage('');
     try {
       let response;
       if (pendingChange.kind === 'role') {
-        response = await updateUserRole(pendingChange.target.id, pendingChange.value);
+        if (pendingChange.value === 'department_leader' && departmentId) {
+          response = await updateUser(pendingChange.target.id, { roleId: pendingChange.value, departmentId });
+        } else {
+          response = await updateUserRole(pendingChange.target.id, pendingChange.value);
+        }
       } else {
         const data = pendingChange.kind === 'department'
           ? { departmentId: pendingChange.value || null }
@@ -160,7 +164,7 @@ function ProfileSettings({ user, roleName }) {
         <label><span>Name</span><input value={user?.name || ''} readOnly /></label>
         <label><span>Email address</span><input value={user?.email || ''} readOnly /></label>
         <label><span>Role</span><input value={roleName || user?.roleId || ''} readOnly /></label>
-        <label><span>Department ID</span><input value={user?.departmentId || 'Unassigned'} readOnly /></label>
+        <label><span>Department</span><input value={['super_admin', 'organization_leader'].includes(user?.roleId) ? 'Organization-wide' : user?.departmentId || 'Unassigned'} readOnly /></label>
       </div>
     </div>
   );
@@ -205,12 +209,15 @@ function MemberSettings({ canView, canAdmin, actor, memberList, departmentChoice
         <div className="settings-table member-table">
           <div className="settings-table-head"><span>Member</span><span>Role</span><span>Department</span><span>Status</span><span>Account</span></div>
           {memberList.map((member) => {
-            const assignableRoles = getAssignableUserRoles(actor?.roleId, member.roleId)
-              .filter((roleId) => roleId !== 'department_leader' || Boolean(member.departmentId));
+            const assignableRoles = getAssignableUserRoles(actor?.roleId, member.roleId);
             const targetInScope = !(actor?.roleId === 'organization_leader' && member.roleId === 'super_admin');
             const canChangeRole = canAdmin && targetInScope && member.id !== actor?.id && assignableRoles.length > 0;
             const canChangeDepartment = canAdmin && targetInScope && member.id !== actor?.id
+              && !['super_admin', 'organization_leader'].includes(member.roleId)
               && canAssignUserDepartment(actor?.roleId, actor?.departmentId, member.departmentId);
+            const displayedDepartment = ['super_admin', 'organization_leader'].includes(member.roleId)
+              ? 'Organization-wide'
+              : departmentName(member.departmentId);
             const canChangeStatus = actor?.roleId === 'super_admin' && member.id !== actor?.id;
             return (
               <div className="settings-table-row" key={member.id}>
@@ -222,10 +229,10 @@ function MemberSettings({ canView, canAdmin, actor, memberList, departmentChoice
                 ) : <span>{roleOptions.find((role) => role.id === member.roleId)?.name || member.roleId}</span>}
                 {canChangeDepartment ? (
                   <select value={member.departmentId || ''} aria-label={`Department for ${member.name}`} onChange={(event) => onChange({ kind: 'department', target: member, value: event.target.value, oldValue: member.departmentId || '' })}>
-                    <option value="">Unassigned</option>
+                    {member.roleId !== 'department_leader' && <option value="">Unassigned</option>}
                     {scopedDepartments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
                   </select>
-                ) : <span>{departmentName(member.departmentId)}</span>}
+                ) : <span>{displayedDepartment}</span>}
                 <span className={`status ${member.isActive ? 'active' : 'inactive'}`}>{member.isActive ? 'Active' : 'Inactive'}</span>
                 {canChangeStatus ? <button className="text-button" type="button" onClick={() => onChange({ kind: 'status', target: member, value: !member.isActive, oldValue: member.isActive })}>{member.isActive ? 'Disable' : 'Enable'}</button> : <span>—</span>}
               </div>
@@ -239,10 +246,21 @@ function MemberSettings({ canView, canAdmin, actor, memberList, departmentChoice
 }
 
 function RoleChangeConfirmation({ change, departments, saving, onCancel, onConfirm }) {
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(change.target.departmentId || '');
   const currentRole = roleOptions.find((role) => role.id === change.target.roleId)?.name || change.target.roleId;
   const newRole = roleOptions.find((role) => role.id === change.value)?.name || change.value;
   const oldDepartment = departments.find((item) => item.id === change.target.departmentId)?.name || 'Unassigned';
-  const newDepartment = departments.find((item) => item.id === change.value)?.name || 'Unassigned';
+  const organizationWideRole = ['super_admin', 'organization_leader'].includes(change.value);
+  const requiresDepartment = change.kind === 'role' && change.value === 'department_leader' && !change.target.departmentId;
+  const resultingDepartmentId = change.kind === 'department'
+    ? change.value
+    : requiresDepartment
+      ? selectedDepartmentId
+      : change.target.departmentId;
+  const newDepartment = organizationWideRole
+    ? 'Organization-wide'
+    : departments.find((item) => item.id === resultingDepartmentId)?.name
+      || (requiresDepartment ? 'Select a department' : 'Unassigned');
   const title = change.kind === 'role' ? 'Confirm role change' : change.kind === 'department' ? 'Confirm department change' : 'Confirm account status change';
   const valueLabel = change.kind === 'role' ? newRole : change.kind === 'department' ? newDepartment : (change.value ? 'Active' : 'Inactive');
 
@@ -255,9 +273,18 @@ function RoleChangeConfirmation({ change, departments, saving, onCancel, onConfi
           <div><dt>Target user</dt><dd>{change.target.name}</dd></div>
           <div><dt>Current role</dt><dd>{currentRole}</dd></div>
           <div><dt>New role / value</dt><dd>{valueLabel}</dd></div>
-          <div><dt>Department</dt><dd>{change.kind === 'department' ? `${oldDepartment} → ${newDepartment}` : oldDepartment}</dd></div>
+          <div><dt>Department</dt><dd>{change.kind === 'department' || change.kind === 'role' ? `${oldDepartment} → ${newDepartment}` : oldDepartment}</dd></div>
         </dl>
-        <div className="user-change-actions"><Button type="button" disabled={saving} onClick={onCancel}>Cancel</Button><Button type="button" variant="primary" disabled={saving} onClick={onConfirm}>{saving ? 'Saving…' : 'Confirm change'}</Button></div>
+        {requiresDepartment && (
+          <label className="form-field">
+            <span>Assign department</span>
+            <select value={selectedDepartmentId} onChange={(event) => setSelectedDepartmentId(event.target.value)} required>
+              <option value="">Select a department</option>
+              {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+            </select>
+          </label>
+        )}
+        <div className="user-change-actions"><Button type="button" disabled={saving} onClick={onCancel}>Cancel</Button><Button type="button" variant="primary" disabled={saving || requiresDepartment && !selectedDepartmentId} onClick={() => onConfirm(requiresDepartment ? selectedDepartmentId : undefined)}>{saving ? 'Saving…' : 'Confirm change'}</Button></div>
       </section>
     </div>
   );
