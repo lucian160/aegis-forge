@@ -1,5 +1,7 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { config, validateProductionEnvironment } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -12,18 +14,34 @@ import healthRoutes from './routes/healthRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, '../dist');
+
 function createApp() {
   const app = express();
 
   app.disable('x-powered-by');
+
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
+
   app.use((request, response, next) => {
     response.setHeader('Access-Control-Allow-Origin', config.corsOrigin);
     response.setHeader('Access-Control-Allow-Credentials', 'true');
-    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    if (request.method === 'OPTIONS') return response.sendStatus(204);
+    response.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    );
+    response.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    );
+
+    if (request.method === 'OPTIONS') {
+      return response.sendStatus(204);
+    }
+
     next();
   });
 
@@ -35,6 +53,25 @@ function createApp() {
   app.use(`/api/${config.apiVersion}/users`, userRoutes);
   app.use(`/api/${config.apiVersion}/meetings`, meetingRoutes);
   app.use(`/api/${config.apiVersion}/domains`, domainRoutes);
+
+  app.use(express.static(distPath));
+
+  app.get('*', (request, response, next) => {
+    if (request.path.startsWith('/api/')) {
+      return next();
+    }
+
+    if (request.method !== 'GET' || !request.accepts('html')) {
+      return next();
+    }
+
+    response.sendFile(path.join(distPath, 'index.html'), (error) => {
+      if (error) {
+        next(error);
+      }
+    });
+  });
+
   app.use(notFoundHandler);
   app.use(errorHandler);
 
@@ -57,6 +94,7 @@ export function startServer(port = config.port) {
         resolve(server);
       } catch (error) {
         console.error('Backend startup failed:', error);
+
         server.close(() => reject(error));
       }
     });
