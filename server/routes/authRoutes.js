@@ -22,7 +22,6 @@ router.get('/register-status', (request, response) => {
 });
 
 router.post('/register', registrationRateLimit, asyncHandler(register));
-router.post('/register', registrationRateLimit, asyncHandler(register));
 router.get('/verify-email', verifyLinkRateLimit, asyncHandler(verifyEmail));
 router.post('/resend-verification', verificationRateLimit, asyncHandler(resendVerification));
 router.post('/forgot-password', passwordResetRequestRateLimit, asyncHandler(requestPasswordReset));
