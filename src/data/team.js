@@ -1,0 +1,78 @@
+export const teamMetrics = [
+  { label: 'Total members', value: '84', trend: '+4 this month' },
+  { label: 'Active projects', value: '18', trend: '3 due soon' },
+  { label: 'Available now', value: '21', trend: '7 across product squads' },
+  { label: 'Collaboration score', value: '92%', trend: '+6% this quarter' },
+];
+
+export const teamMembers = [
+  {
+    id: 'alex-kim',
+    name: 'Alex Kim',
+    role: 'Organization Leader',
+    department: 'Product / Project Management',
+    location: 'Seattle, WA',
+    availability: 'Available this week',
+    skills: ['Roadmaps', 'Planning', 'Leadership'],
+    projects: ['AEGIS Forge', 'Atlas Portal'],
+  },
+  {
+    id: 'ethan-cole',
+    name: 'Ethan Cole',
+    role: 'Senior Engineer',
+    department: 'Web Development',
+    location: 'Austin, TX',
+    availability: 'In review',
+    skills: ['React', 'APIs', 'Frontend'],
+    projects: ['Atlas Portal', 'Support Console'],
+  },
+  {
+    id: 'maya-patel',
+    name: 'Maya Patel',
+    role: 'Mobile Lead',
+    department: 'Mobile Development',
+    location: 'New York, NY',
+    availability: 'Heads down',
+    skills: ['iOS', 'QA', 'User journeys'],
+    projects: ['Mobile Onboarding', 'Release v2.3'],
+  },
+  {
+    id: 'nora-wilson',
+    name: 'Nora Wilson',
+    role: 'Design Director',
+    department: 'UI/UX',
+    location: 'Chicago, IL',
+    availability: 'Reviewing',
+    skills: ['Design systems', 'Research', 'UX'],
+    projects: ['Design System v2', 'Portal redesign'],
+  },
+  {
+    id: 'priya-shah',
+    name: 'Priya Shah',
+    role: 'DevOps Lead',
+    department: 'DevOps / Infrastructure',
+    location: 'Denver, CO',
+    availability: 'Available',
+    skills: ['Cloud', 'Monitoring', 'Automation'],
+    projects: ['Infrastructure Migration', 'Staging hardening'],
+  },
+  {
+    id: 'liam-stone',
+    name: 'Liam Stone',
+    role: 'QA Manager',
+    department: 'QA / Testing',
+    location: 'Boston, MA',
+    availability: 'Testing',
+    skills: ['Regression', 'Automation', 'Release QA'],
+    projects: ['Mobile Onboarding', 'Portal launch'],
+  },
+];
+
+export const departmentSnapshot = [
+  { name: 'UI/UX', members: 12, health: 'Healthy' },
+  { name: 'Web', members: 18, health: 'At capacity' },
+  { name: 'Mobile', members: 7, health: 'Stable' },
+  { name: 'DevOps', members: 6, health: 'Healthy' },
+  { name: 'QA', members: 9, health: 'Focused' },
+  { name: 'Product', members: 10, health: 'Healthy' },
+];

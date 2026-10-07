@@ -1,0 +1,46 @@
+.privacy-consent {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.privacy-consent input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  margin: 2px 0 0;
+  accent-color: var(--accent-strong);
+  cursor: pointer;
+}
+
+.privacy-consent a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-contact-form .privacy-consent {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.landing-contact-form .privacy-consent input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  min-height: auto;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: #3e6e32;
+}
+
+.landing-contact-form .privacy-consent a {
+  color: #31562a;
+}

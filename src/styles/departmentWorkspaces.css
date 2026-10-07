@@ -1,0 +1,355 @@
+.department-workspace-header {
+  align-items: flex-start;
+}
+
+.department-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.department-directory-card {
+  padding: 18px;
+}
+
+.department-directory-top,
+.department-directory-meta,
+.department-directory-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.department-directory-top {
+  margin-bottom: 16px;
+}
+
+.department-directory-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.department-directory-card h2 {
+  margin: 0 0 7px;
+  font-size: 14px;
+}
+
+.department-directory-card > p {
+  min-height: 58px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.department-directory-meta {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 13px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.department-directory-meta strong {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.department-directory-actions {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.department-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.department-code {
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.department-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.75fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.department-workspace-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.department-project-list {
+  display: grid;
+}
+
+.department-project-list .department-project {
+  padding: 16px 0;
+}
+
+.department-team-summary {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.department-team-summary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.department-team-summary strong {
+  font-size: 11px;
+}
+
+.department-team-summary span:not(.avatar) {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.department-workflow-card,
+.department-resources-card {
+  margin-bottom: 14px;
+}
+
+.workspace-card-header {
+  align-items: center;
+}
+
+.workspace-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.workspace-filters input,
+.workspace-filters select {
+  min-width: 170px;
+  height: 34px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font-size: 10px;
+}
+
+.department-workflow-body {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  padding-top: 0;
+}
+
+.workflow-status-list {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.workflow-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: var(--surface-soft);
+}
+
+.workflow-status span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.workflow-status strong {
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.workflow-task-list {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  background: rgba(13, 15, 18, 0.8);
+}
+
+.workflow-task > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.workflow-task > div:last-child {
+  justify-items: end;
+  white-space: nowrap;
+}
+
+.workflow-task strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-task small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.department-resource-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.department-resource-list > div {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  background: var(--surface-soft);
+}
+
+.department-resource-list strong {
+  font-size: 10px;
+}
+
+.resource-type {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.empty-state.compact {
+  min-height: 100px;
+  padding: 18px;
+}
+
+@media (max-width: 980px) {
+  .department-directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .department-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .department-workspace-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .department-resource-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .department-directory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .department-workspace-header,
+  .workspace-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .department-header-actions,
+  .workspace-filters {
+    justify-content: space-between;
+  }
+
+  .workspace-filters input,
+  .workspace-filters select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .department-workflow-body {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-status-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .department-workspace-sidebar,
+  .department-resource-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .department-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .department-header-actions,
+  .workspace-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .department-code {
+    align-self: flex-start;
+  }
+
+  .workflow-task {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .workflow-task > div:last-child {
+    justify-items: start;
+  }
+
+  .workflow-status-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
