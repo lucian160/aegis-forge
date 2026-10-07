@@ -6,6 +6,9 @@ const requiredInProduction = [
   'MONGODB_URI',
   'ACCESS_TOKEN_SECRET',
   'REFRESH_TOKEN_SECRET',
+  'RESEND_API_KEY',
+  'RESEND_FROM_EMAIL',
+  'PUBLIC_APP_URL',
 ];
 
 function getEnvironmentVariable(name, fallback) {

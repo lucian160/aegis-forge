@@ -13,6 +13,14 @@ const passwordResetRequestRateLimit = createRateLimit({ limit: 5, windowMs: 15 *
 const passwordResetRateLimit = createRateLimit({ limit: 10, windowMs: 15 * 60 * 1000 });
 const asyncHandler = (handler) => (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
 
+
+router.get('/register-status', (request, response) => {
+  response.json({
+    status: 'ok',
+    message: 'Registration API is reachable',
+  });
+});
+
 router.post('/register', registrationRateLimit, asyncHandler(register));
 router.get('/verify-email', verifyLinkRateLimit, asyncHandler(verifyEmail));
 router.post('/resend-verification', verificationRateLimit, asyncHandler(resendVerification));
