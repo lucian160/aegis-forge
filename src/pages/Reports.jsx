@@ -21,7 +21,7 @@ function countBy(items, key) {
 }
 
 function safePercent(numerator, denominator) {
-  return denominator ? Math.round((numerator / denominator) * 100) : 0;
+  return denominator ? Math.round((numerator / denominator) * 100) : null;
 }
 
 function inPeriod(value, period) {
@@ -97,12 +97,13 @@ export default function Reports() {
 
   useEffect(() => {
     let active = true;
-    getReportingData()
+    const canViewRecruitment = hasPermission(user?.roleId, 'view', 'reports') && user?.roleId !== 'member';
+    getReportingData({ includeApplications: canViewRecruitment })
       .then((response) => { if (active) setData(response); })
       .catch((requestError) => { if (active) setError(requestError.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [user?.roleId]);
 
   const users = data.users?.users || [];
   const departments = data.departments?.departments || [];
@@ -117,7 +118,7 @@ export default function Reports() {
   const filteredMeetings = useMemo(() => filterItems(meetings, period, department, project, status), [department, period, project, projects, status, meetings]);
   const filteredApplications = useMemo(() => filterItems(applications, period, department, project, status), [applications, department, period, project, status]);
 
-  const activeMembers = users.filter((member) => member.isActive !== false).length;
+  const activeMembers = users.filter((member) => member.isActive === true).length;
   const completedProjects = filteredProjects.filter((item) => item.status === 'Completed').length;
   const completedTasks = filteredTasks.filter((item) => item.status === 'Done' || item.status === 'Completed').length;
   const overdueTasks = filteredTasks.filter((task) => task.status !== 'Done' && task.status !== 'Completed' && task.dueDate && new Date(task.dueDate) < new Date()).length;
@@ -166,14 +167,14 @@ export default function Reports() {
         {metricCard('Projects', totalProjects, `${projectCompletion}% complete`, 'blue')}
         {metricCard('Open tasks', Math.max(totalTasks - completedTasks, 0), `${overdueTasks} overdue`, 'warning')}
         {metricCard('Meetings', totalMeetings, `${upcomingMeetings} upcoming`, 'purple')}
-        {metricCard('Recruitment', canViewRecruitment ? totalApplications : 0, canViewRecruitment ? `${applicationStatus['Pending'] || 0} pending` : 'Permission restricted', 'gray')}
+        {metricCard('Recruitment', canViewRecruitment ? totalApplications : '—', canViewRecruitment ? `${applicationStatus.Submitted || 0} submitted` : 'Permission restricted', 'gray')}
       </section>
 
       <section className="report-grid">
         <Section title="Organization overview" description="Current operational totals and derived completion rates.">
           <div className="report-overview-grid">
-            <div><span>Project completion</span><strong>{projectCompletion}%</strong><div className="report-progress"><i style={{ width: `${projectCompletion}%` }} /></div><small>{completedProjects} of {totalProjects} projects</small></div>
-            <div><span>Task completion</span><strong>{taskCompletion}%</strong><div className="report-progress"><i style={{ width: `${taskCompletion}%` }} /></div><small>{completedTasks} of {totalTasks} tasks</small></div>
+            <div><span>Project completion</span><strong>{projectCompletion === null ? '—' : `${projectCompletion}%`}</strong><div className="report-progress"><i style={{ width: `${projectCompletion ?? 0}%` }} /></div><small>{totalProjects ? `${completedProjects} of ${totalProjects} projects` : 'No project data available'}</small></div>
+            <div><span>Task completion</span><strong>{taskCompletion === null ? '—' : `${taskCompletion}%`}</strong><div className="report-progress"><i style={{ width: `${taskCompletion ?? 0}%` }} /></div><small>{totalTasks ? `${completedTasks} of ${totalTasks} tasks` : 'No task data available'}</small></div>
             <div><span>Active workload</span><strong>{filteredTasks.filter((task) => task.status !== 'Done' && task.status !== 'Completed').length}</strong><small>Open tasks in the selected period</small></div>
             <div><span>Recent activity</span><strong>{activities.length}</strong><small>Records available to your role</small></div>
           </div>
@@ -197,7 +198,7 @@ export default function Reports() {
         </Section>
 
         {canViewRecruitment && <Section title="Recruitment statistics" description="Applications available under the existing recruitment permissions.">
-          <div className="report-two-column"><div><h3>By status</h3>{Object.keys(applicationStatus).length ? <BarChart items={applicationStatus} title="Applications by status" /> : <div className="report-empty">No recruitment applications available.</div>}</div><div><h3>Recent applications</h3><div className="report-list">{applications.slice(0, 5).map((item) => <div key={item.id}><span>{item.applicant?.name || item.applicantName || 'Applicant'}</span><strong>{item.role?.title || item.role || 'Role not specified'}</strong><small>{item.status}</small></div>)}</div></div></div>
+          <div className="report-two-column"><div><h3>By status</h3>{Object.keys(applicationStatus).length ? <BarChart items={applicationStatus} title="Applications by status" /> : <div className="report-empty">No recruitment applications available.</div>}</div><div><h3>Recent applications</h3><div className="report-list">{applications.slice(0, 5).map((item) => <div key={item.id}><span>{item.candidateName || 'Name unavailable'}</span><strong>{item.position || 'Position unavailable'}</strong><small>{item.status}</small></div>)}</div></div></div>
         </Section>}
       </section>
     </>

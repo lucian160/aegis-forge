@@ -13,7 +13,7 @@ function mapUserToMember(user, departmentsById) {
     role: user.roleId.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
     department: departmentsById.get(user.departmentId) || 'Unassigned',
     location: 'Location unavailable',
-    availability: user.isActive ? 'Available' : 'Inactive',
+    availability: user.isActive ? 'Active' : 'Inactive',
     skills: [],
     projects: [],
     initials,
@@ -48,7 +48,7 @@ export default function Team() {
 
   const teamMetrics = [
     { label: 'Visible members', value: members.length, trend: 'From authorized user records' },
-    { label: 'Active accounts', value: members.filter((member) => member.availability === 'Available').length, trend: 'Account status' },
+    { label: 'Active accounts', value: members.filter((member) => member.availability === 'Active').length, trend: 'Account status' },
     { label: 'Departments', value: departmentList.length, trend: 'Visible department records' },
     { label: 'Department leaders', value: members.filter((member) => member.roleId === 'department_leader').length, trend: 'Current role assignments' },
   ];
@@ -93,7 +93,7 @@ export default function Team() {
           <div className="card-header"><h2>Resourcing</h2><span>Priority coverage</span></div>
           <div className="card-body resource-list">
             <div><span>Visible user records</span><strong>{members.length}</strong></div>
-            <div><span>Active accounts</span><strong>{members.filter((member) => member.availability === 'Available').length}</strong></div>
+            <div><span>Active accounts</span><strong>{members.filter((member) => member.availability === 'Active').length}</strong></div>
             <div><span>Unassigned users</span><strong>{members.filter((member) => member.department === 'Unassigned').length}</strong></div>
             <div><span>Department records</span><strong>{departmentList.length}</strong></div>
           </div>

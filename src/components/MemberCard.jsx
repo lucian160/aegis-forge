@@ -3,7 +3,7 @@ export default function MemberCard({ member }) {
     <article className="member-card">
       <div className="member-card-top">
         <span className="avatar large">{member.name.split(' ').map((part) => part[0]).join('')}</span>
-        <span className={`availability ${member.availability.toLowerCase().includes('available') ? 'available' : member.availability.toLowerCase().includes('review') ? 'review' : 'active'}`}>
+        <span className={`availability ${member.availability.toLowerCase() === 'inactive' ? 'inactive' : member.availability.toLowerCase() === 'active' ? 'active' : 'review'}`}>
           {member.availability}
         </span>
       </div>

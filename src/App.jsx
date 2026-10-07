@@ -37,11 +37,6 @@ const Search = lazy(() => import('./pages/Search'));
 const MessagesPage = lazy(() => import('./pages/Messages'));
 const NotificationsPage = lazy(() => import('./pages/Notifications'));
 const Settings = lazy(() => import('./pages/Settings'));
-const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage'));
-
-const placeholderRoutes = [
-  'departments', 'calendar', 'meetings', 'profile',
-];
 
 export default function App() {
   return (
@@ -90,13 +85,7 @@ export default function App() {
               <Route path="messages" element={<MessagesPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="settings" element={<Settings />} />
-              {placeholderRoutes.filter((route) => !['departments', 'projects', 'tasks', 'documents', 'knowledge-base', 'research', 'recruitment', 'messages', 'notifications', 'calendar', 'meetings'].includes(route)).map((route) => (
-                <Route
-                  key={route}
-                  path={route}
-                  element={<PlaceholderPage title={route.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())} />}
-                />
-              ))}
+              <Route path="profile" element={<Navigate to="/settings" replace />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

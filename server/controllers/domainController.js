@@ -33,12 +33,12 @@ const resources = {
   comments: { model: Comment, scope: 'comments', name: 'comment' },
   announcements: { model: Announcement, scope: 'announcements', name: 'announcement', departmentScoped: true },
   notifications: { model: Notification, scope: 'notifications', name: 'notification' },
-  activities: { model: Activity, scope: 'activities', name: 'activity' },
+  activities: { model: Activity, scope: 'activities', name: 'activity', listKey: 'activities' },
   documents: { model: Document, scope: 'documents', name: 'document', departmentScoped: true },
-  knowledge: { model: KnowledgeArticle, scope: 'knowledge', name: 'knowledge article', departmentScoped: true },
-  researchProjects: { model: ResearchProject, scope: 'research', name: 'research project', departmentScoped: true },
-  researchEntries: { model: ResearchEntry, scope: 'research', name: 'research entry' },
-  applications: { model: RecruitmentApplication, scope: 'applications', name: 'recruitment application', departmentScoped: true },
+  knowledge: { model: KnowledgeArticle, scope: 'knowledge', name: 'knowledgeArticle', listKey: 'knowledgeArticles', departmentScoped: true },
+  researchProjects: { model: ResearchProject, scope: 'research', name: 'researchProject', listKey: 'researchProjects', departmentScoped: true },
+  researchEntries: { model: ResearchEntry, scope: 'research', name: 'researchEntry', listKey: 'researchEntries' },
+  applications: { model: RecruitmentApplication, scope: 'applications', name: 'application', listKey: 'applications', departmentScoped: true },
   meetings: { model: Meeting, scope: 'meetings', name: 'meeting', departmentScoped: true },
 };
 
@@ -73,7 +73,7 @@ export async function listResources(request, response) {
   if (resource.scope === 'activities') query.user = request.user.id;
   const documents = await resource.model.find(query).sort({ createdAt: -1 });
   const populated = await populateRelations(documents);
-  response.json({ [resource.name + 's']: populated });
+  response.json({ [resource.listKey || `${resource.name}s`]: populated });
 }
 
 export async function getResource(request, response) {

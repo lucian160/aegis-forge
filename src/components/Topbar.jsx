@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
-import Button from './Button';
 
 export default function Topbar({ onMenu, notificationsOpen, onToggleNotifications }) {
   const navigate = useNavigate();
@@ -40,7 +39,6 @@ export default function Topbar({ onMenu, notificationsOpen, onToggleNotification
         <button className="icon-button" aria-label="Open notifications" onClick={onToggleNotifications} aria-pressed={notificationsOpen}>
           <Icon name="bell" />
         </button>
-        <Button variant="primary" icon="plus"><span>New task</span></Button>
       </div>
     </header>
   );

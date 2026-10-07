@@ -96,14 +96,13 @@ export default function Projects() {
     <>
       <header className="page-header">
         <div><p className="eyebrow">Delivery workspace</p><h1>Projects & tasks</h1><p>Track work, priorities, owners, and delivery progress.</p></div>
-        <Button variant="primary" icon="plus">New project</Button>
       </header>
 
       {error && <p className="auth-error" role="alert">Unable to load or update project data: {error}</p>}
       {loading ? <div className="auth-loading">Loading projects and tasks…</div> : (
         <>
           <section className="project-list-section">
-            <div className="section-heading"><h2>Active projects</h2><span>{projects.length} projects</span></div>
+            <div className="section-heading"><h2>Projects</h2><span>{projects.length} projects</span></div>
             <div className="project-grid-large">{projects.length ? projects.map((project) => <ProjectCard key={project.id} project={project} />) : <p className="empty-state">No live projects are available.</p>}</div>
           </section>
 

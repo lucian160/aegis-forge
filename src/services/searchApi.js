@@ -22,7 +22,8 @@ function matchesSearch(record, query) {
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) return false;
   const searchable = [
-    record.name, record.title, record.description, record.summary, record.status,
+    record.name, record.candidateName, record.candidateEmail, record.position,
+    record.title, record.description, record.summary, record.status,
     record.priority, record.category, record.meetingType, record.role?.title,
     record.role?.name, record.department?.name, record.project?.name,
     record.assignee?.name, record.owner?.name,
@@ -31,7 +32,7 @@ function matchesSearch(record, query) {
 }
 
 function resultFrom(record, type, route, secondary, status) {
-  const title = record.name || record.title || record.description || record.summary || 'Untitled';
+  const title = record.name || record.candidateName || record.title || record.description || record.summary || 'Untitled';
   const description = record.description || record.summary || record.title || record.name || '';
   return {
     id: record.id,
@@ -72,7 +73,7 @@ export async function searchWorkspace(query) {
       documents: { route: '/documents', secondary: (record) => record.category || record.owner?.name || '' },
       knowledge: { route: '/knowledge-base', secondary: (record) => record.department?.name || record.category || '' },
       research: { route: '/research', secondary: (record) => record.status || '' },
-      recruitment: { route: '/recruitment', secondary: (record) => `${record.role?.title || 'Role'} · ${record.status || ''}` },
+      recruitment: { route: '/recruitment', secondary: (record) => `${record.position || 'Position unavailable'} · ${record.status || ''}` },
     };
     const definition = definitions[type];
     return mapRecords(records, type, definition.route, { query: normalizedQuery, secondary: definition.secondary });

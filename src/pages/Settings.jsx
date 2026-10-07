@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
-import { departments, organizationProfile, permissionRows, roleOptions } from '../data/settings';
+import { permissionRows, roleOptions } from '../data/settings';
 import { canAssignUserDepartment, getAssignableUserRoles, hasPermission } from '../data/permissions';
 import { getAuditEntries } from '../services/auditApi';
 import { getDepartments } from '../services/domainsApi';
@@ -25,8 +25,10 @@ export default function Settings({ initialTab = 'Profile' }) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [memberList, setMemberList] = useState([]);
-  const [departmentList, setDepartmentList] = useState(departments);
+  const [departmentList, setDepartmentList] = useState([]);
   const [departmentChoices, setDepartmentChoices] = useState([]);
+  const [departmentLoading, setDepartmentLoading] = useState(false);
+  const [departmentError, setDepartmentError] = useState('');
   const [message, setMessage] = useState('');
   const [memberLoading, setMemberLoading] = useState(false);
   const [memberError, setMemberError] = useState('');
@@ -38,6 +40,24 @@ export default function Settings({ initialTab = 'Profile' }) {
   const canViewAudit = hasPermission(user?.roleId, 'view', 'activities');
 
   const selectedRole = useMemo(() => roleOptions.find((role) => role.id === user?.roleId), [user?.roleId]);
+
+  useEffect(() => {
+    if (activeTab !== 'Departments' || !canAdmin) return undefined;
+    let active = true;
+    setDepartmentLoading(true);
+    setDepartmentError('');
+    getDepartments()
+      .then((response) => {
+        if (active) setDepartmentList(response.departments || []);
+      })
+      .catch((error) => {
+        if (active) setDepartmentError(error.message || 'Unable to load department data.');
+      })
+      .finally(() => {
+        if (active) setDepartmentLoading(false);
+      });
+    return () => { active = false; };
+  }, [activeTab, canAdmin]);
 
   useEffect(() => {
     if (activeTab !== 'Members' || !canViewMembers) return undefined;
@@ -87,18 +107,13 @@ export default function Settings({ initialTab = 'Profile' }) {
     }
   };
 
-  const updateDepartment = (departmentId, field, value) => {
-    setDepartmentList((current) => current.map((department) => department.id === departmentId ? { ...department, [field]: value } : department));
-    setMessage('Department details updated in this demo session.');
-  };
-
   return (
     <>
       <header className="page-header settings-header">
         <div>
           <p className="eyebrow">Administration</p>
           <h1>Settings & permissions</h1>
-          <p>Manage your workspace, organization, team access, and local demo configuration.</p>
+          <p>Manage your workspace, organization, and team access.</p>
         </div>
         <div className="settings-role"><span>Current role</span><strong>{selectedRole?.name || 'Member'}</strong></div>
       </header>
@@ -112,20 +127,20 @@ export default function Settings({ initialTab = 'Profile' }) {
             {tabs.map((tab) => (
               <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)} type="button">
                 {tab}
-                {tab === 'Roles' && <span>9</span>}
+                {tab === 'Roles' && <span>{roleOptions.length}</span>}
               </button>
             ))}
           </nav>
         </aside>
 
         <section className="settings-content">
-          {activeTab === 'Profile' && <ProfileSettings />}
-          {activeTab === 'Account' && <AccountSettings />}
+          {activeTab === 'Profile' && <ProfileSettings user={user} roleName={selectedRole?.name} />}
+          {activeTab === 'Account' && <AccountSettings user={user} roleName={selectedRole?.name} />}
           {activeTab === 'Notifications' && <NotificationSettings />}
           {activeTab === 'Appearance' && <AppearanceSettings />}
           {activeTab === 'Security' && <SecuritySettings />}
           {activeTab === 'Organization' && <OrganizationSettings canAdmin={canAdmin} />}
-          {activeTab === 'Departments' && <DepartmentSettings canAdmin={canAdmin} departmentList={departmentList} updateDepartment={updateDepartment} />}
+          {activeTab === 'Departments' && <DepartmentSettings canAdmin={canAdmin} departmentList={departmentList} loading={departmentLoading} error={departmentError} />}
           {activeTab === 'Members' && <MemberSettings canView={canViewMembers} canAdmin={canManageMembers} actor={user} memberList={memberList} departmentChoices={departmentChoices} loading={memberLoading} error={memberError} onError={setMemberError} onChange={(change) => setPendingChange(change)} />}
           {activeTab === 'Roles' && <RoleSettings canAdmin={canAdmin} />}
           {activeTab === 'Permissions' && <PermissionSettings canAdmin={canAdmin} />}
@@ -137,47 +152,42 @@ export default function Settings({ initialTab = 'Profile' }) {
   );
 }
 
-function ProfileSettings() {
-  const [profile, setProfile] = useState(organizationProfile);
+function ProfileSettings({ user, roleName }) {
   return (
     <div className="settings-section">
-      <div className="settings-section-heading"><div><h2>Profile</h2><p>Organization-facing details shown across AEGIS Forge.</p></div></div>
+      <div className="settings-section-heading"><div><h2>Profile</h2><p>Your identity is provided by the active authentication session.</p></div></div>
       <div className="settings-form-grid">
-        <label><span>Organization name</span><input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} /></label>
-        <label><span>Legal name</span><input value={profile.legalName} onChange={(event) => setProfile({ ...profile, legalName: event.target.value })} /></label>
-        <label><span>Industry</span><input value={profile.industry} onChange={(event) => setProfile({ ...profile, industry: event.target.value })} /></label>
-        <label><span>Website</span><input value={profile.website} onChange={(event) => setProfile({ ...profile, website: event.target.value })} /></label>
-        <label><span>Time zone</span><select value={profile.timezone} onChange={(event) => setProfile({ ...profile, timezone: event.target.value })}><option value="America/Los_Angeles">Pacific Time (UTC−8)</option><option value="America/Denver">Mountain Time (UTC−7)</option><option value="America/Chicago">Central Time (UTC−6)</option><option value="America/New_York">Eastern Time (UTC−5)</option></select></label>
-        <label><span>Default language</span><select value={profile.language} onChange={(event) => setProfile({ ...profile, language: event.target.value })}><option>English</option><option>Spanish</option><option>French</option><option>German</option></select></label>
+        <label><span>Name</span><input value={user?.name || ''} readOnly /></label>
+        <label><span>Email address</span><input value={user?.email || ''} readOnly /></label>
+        <label><span>Role</span><input value={roleName || user?.roleId || ''} readOnly /></label>
+        <label><span>Department ID</span><input value={user?.departmentId || 'Unassigned'} readOnly /></label>
       </div>
-      <div className="settings-actions"><Button variant="primary">Save profile</Button></div>
     </div>
   );
 }
 
-function AccountSettings() {
-  return <SettingsSection title="Account settings" description="Manage the signed-in account and demo session preferences." icon="Account"><div className="settings-form-grid"><label><span>Display name</span><input defaultValue="Alex Kim" /></label><label><span>Email address</span><input defaultValue="alex@aegisforge.internal" type="email" /></label><label><span>Account type</span><input defaultValue="Organization Leader" /></label><label><span>Default department</span><select defaultValue="product"><option value="product">Product / Project Management</option><option value="web">Web Development</option></select></label></div><div className="settings-actions"><Button variant="primary">Save account</Button></div></SettingsSection>;
+function AccountSettings({ user, roleName }) {
+  return <SettingsSection title="Account settings" description="Account identity and verification status from the authenticated session." icon="Account"><div className="settings-summary-grid"><div><span>Account</span><strong>{user?.email || 'Unavailable'}</strong></div><div><span>Role</span><strong>{roleName || user?.roleId || 'Unavailable'}</strong></div><div><span>Verification</span><strong>{user?.isVerified ? 'Verified' : 'Not verified'}</strong></div><div><span>Status</span><strong>{user?.isActive ? 'Active' : 'Inactive'}</strong></div></div></SettingsSection>;
 }
 
 function NotificationSettings() {
-  const options = ['Project updates', 'Task assignments', 'Department activity', 'Recruitment activity', 'Security alerts'];
-  return <SettingsSection title="Notification settings" description="Choose which workspace updates are delivered." icon="Notifications"><div className="toggle-list">{options.map((option) => <label key={option}><span><strong>{option}</strong><small>Receive relevant updates in your workspace</small></span><input type="checkbox" defaultChecked={option !== 'Security alerts'} /><i /></label>)}</div><div className="settings-actions"><Button variant="primary">Save preferences</Button></div></SettingsSection>;
+  return <SettingsSection title="Notification settings" description="Notification preferences are not available from the current account API." icon="Notifications"><p className="empty-state">No notification preference records are available.</p></SettingsSection>;
 }
 
 function AppearanceSettings() {
-  return <SettingsSection title="Appearance settings" description="Configure the visual experience for this workspace."><div className="appearance-options"><button className="active" type="button"><span className="appearance-swatch dark" />Dark theme</button><button type="button"><span className="appearance-swatch light" />Light theme</button><button type="button"><span className="appearance-swatch contrast" />High contrast</button></div><div className="settings-actions"><Button variant="primary">Apply appearance</Button></div></SettingsSection>;
+  return <SettingsSection title="Appearance settings" description="Appearance preferences are not available from the current account API."><p className="empty-state">No appearance preference records are available.</p></SettingsSection>;
 }
 
 function SecuritySettings() {
-  return <SettingsSection title="Security settings" description="Review local demo controls. Production security is handled by the backend phase."><div className="security-list"><div><strong>Password</strong><span>Demo password is stored only in the presentation session.</span><Button>Change password</Button></div><div><strong>Two-factor authentication</strong><span>Not enabled in this static demo.</span><Button>Enable</Button></div><div><strong>Active sessions</strong><span>One signed-in demo session is currently active.</span><Button>Review sessions</Button></div></div></SettingsSection>;
+  return <SettingsSection title="Security settings" description="Session authentication and account security are handled by the backend."><p className="empty-state">No additional security settings are available.</p></SettingsSection>;
 }
 
 function OrganizationSettings({ canAdmin }) {
-  return <SettingsSection title="Organization settings" description="Organization-level configuration and status." icon="Organization" disabled={!canAdmin}><div className="settings-summary-grid"><div><span>Organization</span><strong>AEGIS Forge</strong></div><div><span>Members</span><strong>84</strong></div><div><span>Departments</span><strong>6</strong></div><div><span>Plan</span><strong>Team operations</strong></div></div><div className="settings-actions"><Button variant="primary" disabled={!canAdmin}>Edit organization</Button></div></SettingsSection>;
+  return <SettingsSection title="Organization settings" description="Organization-level configuration." icon="Organization" disabled={!canAdmin}><p className="empty-state">Organization profile data is not available from the current API.</p></SettingsSection>;
 }
 
-function DepartmentSettings({ canAdmin, departmentList, updateDepartment }) {
-  return <SettingsSection title="Department management" description="Assign department ownership and capacity." icon="Departments" disabled={!canAdmin}><div className="settings-table"><div className="settings-table-head"><span>Department</span><span>Lead</span><span>Members</span><span>Status</span></div>{departmentList.map((department) => <div className="settings-table-row" key={department.id}><strong>{department.name}</strong><select value={department.head} onChange={(event) => updateDepartment(department.id, 'head', event.target.value)}><option>{department.head}</option><option>Alex Kim</option><option>Ethan Cole</option></select><span>{department.members}</span><span className="status active">{department.status}</span></div>)}</div></SettingsSection>;
+function DepartmentSettings({ canAdmin, departmentList, loading, error }) {
+  return <SettingsSection title="Department management" description="Live departments from the existing API. Structure and leadership are managed through authorized user management." icon="Departments" disabled={!canAdmin}>{error && <p className="auth-error" role="alert">Unable to load departments: {error}</p>}{loading ? <div className="auth-loading">Loading departments…</div> : departmentList.length ? <div className="settings-table"><div className="settings-table-head"><span>Department</span><span>Lead assignment</span><span>Members</span><span>Status</span></div>{departmentList.map((department) => <div className="settings-table-row" key={department.id || department._id}><strong>{department.name}</strong><span>{department.lead ? 'Assigned' : 'Unassigned'}</span><span>{Array.isArray(department.members) ? department.members.length : '—'}</span><span className={`status ${(department.status || 'unknown').toLowerCase()}`}>{department.status || 'Unavailable'}</span></div>)}</div> : !error && <p className="empty-state">No department records are available.</p>}</SettingsSection>;
 }
 
 function MemberSettings({ canView, canAdmin, actor, memberList, departmentChoices, loading, error, onError, onChange }) {
@@ -258,7 +268,7 @@ function RoleSettings({ canAdmin }) {
 }
 
 function PermissionSettings({ canAdmin }) {
-  return <SettingsSection title="Permission management" description="Review the role-to-action access model used by this demo." icon="Permissions" disabled={!canAdmin}><div className="settings-table permission-table"><div className="settings-table-head"><span>Scope</span><span>View</span><span>Manage</span></div>{permissionRows.map(([scope, view, manage]) => <div className="settings-table-row" key={scope}><strong>{scope}</strong><span>{view}</span><span>{manage}</span></div>)}</div><div className="permission-note"><strong>Demo policy</strong><p>Permissions are evaluated locally from the current role. The backend must replace this policy with server-side authorization.</p></div></SettingsSection>;
+  return <SettingsSection title="Permission management" description="Review the existing role-to-action access model." icon="Permissions" disabled={!canAdmin}><div className="settings-table permission-table"><div className="settings-table-head"><span>Scope</span><span>View</span><span>Manage</span></div>{permissionRows.map(([scope, view, manage]) => <div className="settings-table-row" key={scope}><strong>{scope}</strong><span>{view}</span><span>{manage}</span></div>)}</div><div className="permission-note"><p>API operations are also enforced by backend authorization middleware.</p></div></SettingsSection>;
 }
 
 function AuditLogSettings({ canAdmin }) {

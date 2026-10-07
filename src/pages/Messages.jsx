@@ -1,10 +1,4 @@
-import { useAuth } from '../hooks/useAuth';
-import { canViewForRole, inboxMessages } from '../data/communications';
-
 export default function MessagesPage() {
-  const { user } = useAuth();
-  const visibleMessages = inboxMessages.filter((item) => canViewForRole(user?.roleId, item.audience));
-
   return (
     <>
       <header className="page-header">
@@ -16,25 +10,9 @@ export default function MessagesPage() {
       </header>
 
       <section className="card">
-        <div className="card-header"><h2>Messages</h2><span>{visibleMessages.filter((item) => item.unread).length} unread</span></div>
-        <div className="card-body message-list">
-          {visibleMessages.map((message) => (
-            <article key={message.id} className={`message-item ${message.unread ? 'unread' : 'read'}`}>
-              <div className="message-item-top">
-                <div className="message-sender">
-                  <span className="avatar small">{message.from.split(' ').map((part) => part[0]).join('')}</span>
-                  <div>
-                    <strong>{message.from}</strong>
-                    <span>{message.category}</span>
-                  </div>
-                </div>
-                <span className="meta-text">{message.time}</span>
-              </div>
-
-              <h3>{message.subject}</h3>
-              <p>{message.preview}</p>
-            </article>
-          ))}
+        <div className="card-header"><h2>Messages</h2></div>
+        <div className="card-body">
+          <p className="empty-state">No message records are available from the current API.</p>
         </div>
       </section>
     </>

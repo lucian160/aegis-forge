@@ -19,7 +19,6 @@ export default function DocumentCard({ document }) {
       <div className="content-card-footer">
         <span className="avatar small">{document.owner.split(' ').map((part) => part[0]).join('')}</span>
         <span>{document.owner}</span>
-        <span className="content-stat"><Icon name="search" />{document.views}</span>
       </div>
     </article>
   );

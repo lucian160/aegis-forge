@@ -1,6 +1,6 @@
 # AEGIS Forge API
 
-This phase introduces the backend foundation only. The frontend remains on its static demo-data architecture.
+This API supports the frontend's live workspace data. Role, permission, status, and workflow options remain local configuration.
 
 ## Local setup
 
@@ -28,6 +28,6 @@ The endpoint reports service status, API version, and MongoDB connection state. 
 
 ## Notes
 
-- User persistence is introduced in this phase, but the frontend remains on its static demo data.
+- User and domain records are persisted in MongoDB and exposed through the authenticated API.
 - No Redis, Docker, microservices, or load balancing is included.
 - The server supports graceful shutdown and production environment validation.

@@ -1144,6 +1144,11 @@
   color: var(--info);
 }
 
+.availability.inactive {
+  background: rgba(133, 139, 148, 0.1);
+  color: var(--muted);
+}
+
 .member-card-body h3 {
   margin: 0;
   font-size: 14px;

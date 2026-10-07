@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ApplicantCard from '../components/ApplicantCard';
 import StatCard from '../components/StatCard';
-import { applicants as demoApplicants, applicationStatuses } from '../data/recruitment';
+import { applicationStatuses } from '../data/recruitment';
 import { getApplications } from '../services/domainsApi';
 
 function mapApplication(application) {
@@ -9,19 +9,16 @@ function mapApplication(application) {
     ...application,
     name: application.candidateName,
     email: application.candidateEmail,
-    position: application.position,
+    position: typeof application.position === 'string' ? application.position : application.position?.title || 'Position unavailable',
     department: application.department?.name || application.department || 'Unknown department',
-    skills: application.skills || [],
-    experience: application.experience || 'Not provided',
-    portfolio: application.portfolio || '',
-    applied: application.submittedAt ? new Date(application.submittedAt).toLocaleDateString() : 'Recently',
-    summary: application.notes || 'No application summary has been provided.',
-    status: application.status === 'Under Review' ? 'Reviewing' : application.status,
+    portfolio: application.portfolioUrl || application.linkedInUrl || '',
+    applied: application.submittedAt ? new Date(application.submittedAt).toLocaleDateString() : 'Date unavailable',
+    summary: application.notes || 'No application notes are available.',
   };
 }
 
 export default function RecruitmentDashboard() {
-  const [applicants, setApplicants] = useState(demoApplicants);
+  const [applicants, setApplicants] = useState([]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('All statuses');
   const [department, setDepartment] = useState('All departments');
@@ -33,7 +30,7 @@ export default function RecruitmentDashboard() {
     let active = true;
     getApplications()
       .then((response) => {
-        if (active && response.applications?.length) setApplicants(response.applications.map(mapApplication));
+        if (active) setApplicants((response.applications || []).map(mapApplication));
       })
       .catch((requestError) => {
         if (active) setError(requestError.message);
@@ -54,21 +51,21 @@ export default function RecruitmentDashboard() {
   }), [applicants, department, query, status]);
 
   const applicantStats = [
-    { label: 'Total applicants', value: applicants.length, trend: 'Live roster when available' },
-    { label: 'New', value: applicants.filter((applicant) => applicant.status === 'New').length, trend: 'Needs review' },
-    { label: 'In process', value: applicants.filter((applicant) => ['Reviewing', 'Shortlisted', 'Interview'].includes(applicant.status)).length, trend: 'Active review' },
-    { label: 'Final decisions', value: applicants.filter((applicant) => ['Accepted', 'Rejected'].includes(applicant.status)).length, trend: 'Closed' },
+    { label: 'Applications', value: applicants.length, trend: 'Live API records' },
+    { label: 'Submitted', value: applicants.filter((applicant) => applicant.status === 'Submitted').length, trend: 'Live application status' },
+    { label: 'In review', value: applicants.filter((applicant) => ['Under Review', 'Interviewing'].includes(applicant.status)).length, trend: 'Live application status' },
+    { label: 'Decisions', value: applicants.filter((applicant) => ['Accepted', 'Rejected', 'Withdrawn'].includes(applicant.status)).length, trend: 'Live application status' },
   ];
 
   return (
     <>
-      <header className="page-header"><div><p className="eyebrow">People operations</p><h1>Recruitment</h1><p>Review applications, assess candidates, and keep hiring activity organized.</p></div><button className="button primary" type="button">Invite candidate</button></header>
-      {error && <p className="auth-error" role="alert">Unable to load recruitment applications: {error}. Showing the existing roster.</p>}
+      <header className="page-header"><div><p className="eyebrow">People operations</p><h1>Recruitment</h1><p>Review applications, assess candidates, and keep hiring activity organized.</p></div></header>
+      {error && <p className="auth-error" role="alert">Unable to load recruitment applications: {error}</p>}
       {loading ? <div className="auth-loading">Loading recruitment applications…</div> : (
         <>
           <section className="stat-grid" aria-label="Recruitment summary">{applicantStats.map((stat) => <StatCard key={stat.label} {...stat} />)}</section>
-          <section className="recruitment-section"><div className="section-heading"><h2>Applicants</h2><span>{visibleApplicants.length} results</span></div><div className="filter-bar"><label className="search-box"><span className="sr-only">Search applicants</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search applicants, roles, or skills..." /></label><select className="filter-select" value={department} onChange={(event) => setDepartment(event.target.value)} aria-label="Filter by department">{departments.map((item) => <option key={item}>{item}</option>)}</select><select className="filter-select" value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by application status"><option>All statuses</option>{applicationStatuses.map((item) => <option key={item}>{item}</option>)}</select></div><div className="applicant-grid">{visibleApplicants.map((applicant) => <ApplicantCard key={applicant.id} applicant={applicant} />)}</div></section>
-          <section className="section-grid"><article className="card"><div className="card-header"><h2>Pipeline</h2><span>Current status distribution</span></div><div className="card-body pipeline-list">{applicationStatuses.map((item) => <div key={item}><span>{item}</span><div className="progress-track"><span style={{ width: `${(applicants.filter((applicant) => applicant.status === item).length / applicants.length) * 100}%` }} /></div><strong>{applicants.filter((applicant) => applicant.status === item).length}</strong></div>)}</div></article><article className="card"><div className="card-header"><h2>Recent activity</h2><span>Live timeline when available</span></div><div className="card-body list-stack"><div className="list-row"><span className="avatar small">NL</span><div className="list-main"><strong>Noah Williams</strong><span>Moved to shortlisted</span></div><span className="meta-text">Today</span></div><div className="list-row"><span className="avatar small">SM</span><div className="list-main"><strong>Sofia Martinez</strong><span>Started interview</span></div><span className="meta-text">Yesterday</span></div><div className="list-row"><span className="avatar small">JP</span><div className="list-main"><strong>Jordan Lee</strong><span>Application submitted</span></div><span className="meta-text">Sep 18</span></div></div></article></section>
+          <section className="recruitment-section"><div className="section-heading"><h2>Applications</h2><span>{visibleApplicants.length} results</span></div><div className="filter-bar"><label className="search-box"><span className="sr-only">Search applicants</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search applicants, roles, or skills..." /></label><select className="filter-select" value={department} onChange={(event) => setDepartment(event.target.value)} aria-label="Filter by department">{departments.map((item) => <option key={item}>{item}</option>)}</select><select className="filter-select" value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by application status"><option>All statuses</option>{applicationStatuses.map((item) => <option key={item}>{item}</option>)}</select></div><div className="applicant-grid">{visibleApplicants.map((applicant) => <ApplicantCard key={applicant.id} applicant={applicant} />)}{visibleApplicants.length === 0 && <p className="empty-state">No applications are available for this view.</p>}</div></section>
+          <section className="section-grid"><article className="card"><div className="card-header"><h2>Pipeline</h2><span>Current status distribution</span></div><div className="card-body pipeline-list">{applicationStatuses.map((item) => { const count = applicants.filter((applicant) => applicant.status === item).length; return <div key={item}><span>{item}</span><div className="progress-track"><span style={{ width: `${applicants.length ? (count / applicants.length) * 100 : 0}%` }} /></div><strong>{count}</strong></div>; })}</div></article><article className="card"><div className="card-header"><h2>Recent activity</h2><span>From application records</span></div><div className="card-body list-stack"><p className="empty-state">Recruitment activity records are not available from the current API.</p></div></article></section>
         </>
       )}
     </>

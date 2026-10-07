@@ -32,6 +32,7 @@ export function populateRelations(value) {
     { path: 'author', select: 'name email' },
     { path: 'uploadedBy', select: 'name email' },
     { path: 'organizer', select: 'name email' },
+    { path: 'entries', populate: { path: 'author', select: 'name email' } },
   ].filter(({ path }) => document.schema.path(path) || document.schema.virtuals[path]));
 
   if (Array.isArray(value)) {

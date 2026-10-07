@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../components/Button';
 import { getMeetings } from '../services/domainsApi';
-import { listUsers } from '../services/usersApi';
 
 function meetingDate(value) {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -18,7 +17,6 @@ function initials(name = '') {
 
 export default function Meetings() {
   const [meetings, setMeetings] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('All');
@@ -26,11 +24,10 @@ export default function Meetings() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getMeetings(), listUsers()])
-      .then(([meetingResponse, userResponse]) => {
+    getMeetings()
+      .then((meetingResponse) => {
         if (!active) return;
         setMeetings(meetingResponse.meetings || []);
-        setUsers(userResponse.users || []);
       })
       .catch((requestError) => {
         if (active) setError(requestError.message);
@@ -62,7 +59,7 @@ export default function Meetings() {
           <section className="meeting-summary-grid">
             <article className="meeting-summary-card"><span>Upcoming</span><strong>{upcoming}</strong><small>Scheduled or active</small></article>
             <article className="meeting-summary-card"><span>Completed</span><strong>{completed}</strong><small>Closed meetings</small></article>
-            <article className="meeting-summary-card"><span>Participants</span><strong>{users.length}</strong><small>Team members available</small></article>
+            <article className="meeting-summary-card"><span>Meetings</span><strong>{meetings.length}</strong><small>Records in this view</small></article>
           </section>
 
           <section className="meeting-list-toolbar">

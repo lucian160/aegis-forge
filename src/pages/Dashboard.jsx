@@ -4,7 +4,6 @@ import { hasPermission } from '../data/permissions';
 import { getActivities, getDepartments, getNotifications, getProjects, getTasks } from '../services/domainsApi';
 import { listUsers } from '../services/usersApi';
 import AlertItem from '../components/AlertItem';
-import Button from '../components/Button';
 import ProjectSummary from '../components/ProjectSummary';
 import StatCard from '../components/StatCard';
 
@@ -15,6 +14,7 @@ function formatActivityTime(value) {
 export default function Dashboard() {
   const { user } = useAuth();
   const [data, setData] = useState({ departments: [], projects: [], tasks: [], users: [], notifications: [], activities: [] });
+  const [available, setAvailable] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,15 +33,20 @@ export default function Dashboard() {
       .then((results) => {
         if (!active) return;
         const nextData = { departments: [], projects: [], tasks: [], users: [], notifications: [], activities: [] };
-        let fulfilled = 0;
+        const nextAvailable = {};
+        const failures = [];
         results.forEach((result, index) => {
-          if (result.status !== 'fulfilled') return;
-          fulfilled += 1;
           const key = requests[index][0];
+          if (result.status !== 'fulfilled') {
+            failures.push(result.reason?.message || `${key} data is unavailable.`);
+            return;
+          }
+          nextAvailable[key] = true;
           nextData[key] = result.value[key] || [];
         });
         setData(nextData);
-        if (!fulfilled) setError('Dashboard data is temporarily unavailable.');
+        setAvailable(nextAvailable);
+        if (failures.length) setError(`Some dashboard data could not be loaded: ${failures.join(' ')}`);
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -58,27 +63,27 @@ export default function Dashboard() {
       id: departmentId,
       name: department.name,
       members: department.members?.length,
-      lead: department.lead?.name || 'Unassigned lead',
-      activeProjects: projects.filter((project) => !['Completed', 'Archived'].includes(project.status)).length,
-      workload: tasks.filter((task) => !['Done', 'Completed'].includes(task.status)).length,
+      lead: department.lead?.name || (department.lead ? 'Lead assigned' : 'No lead assigned'),
+      activeProjects: available.projects ? projects.filter((project) => !['Completed', 'Archived'].includes(project.status)).length : null,
+      workload: available.tasks ? tasks.filter((task) => !['Done', 'Completed'].includes(task.status)).length : null,
     };
   });
   const overviewStats = [
-    { label: 'Total members', value: data.users.length || '—', trend: data.users.length ? 'Live user records' : 'Not available for this role' },
-    { label: 'Active projects', value: activeProjects.length, trend: 'Live project records' },
-    { label: 'Open tasks', value: openTasks.length, trend: 'Live task records' },
-    { label: 'Completed projects', value: completedProjects, trend: 'Live project records' },
+    { label: 'Total members', value: available.users ? data.users.length : '—', trend: available.users ? 'Live user records' : 'Not available' },
+    { label: 'Active projects', value: available.projects ? activeProjects.length : '—', trend: available.projects ? 'Live project records' : 'Data unavailable' },
+    { label: 'Open tasks', value: available.tasks ? openTasks.length : '—', trend: available.tasks ? 'Live task records' : 'Data unavailable' },
+    { label: 'Completed projects', value: available.projects ? completedProjects : '—', trend: available.projects ? 'Live project records' : 'Data unavailable' },
   ];
-  const alerts = data.notifications.slice(0, 4).map((notification) => ({ title: notification.title, detail: notification.message, severity: notification.read ? 'info' : 'warning' }));
-  const activity = data.activities.slice(0, 5).map((entry) => ({ author: entry.user?.name || 'Activity', action: entry.action, target: entry.targetType, detail: entry.details, time: formatActivityTime(entry.createdAt) }));
-  const projects = activeProjects.slice(0, 4).map((project) => ({
+  const alerts = available.notifications ? data.notifications.slice(0, 4).map((notification) => ({ title: notification.title, detail: notification.message, severity: notification.read ? 'info' : 'warning' })) : [];
+  const activity = available.activities ? data.activities.slice(0, 5).map((entry) => ({ author: entry.user?.name || 'Unknown user', action: entry.action, target: entry.targetType, detail: entry.details, time: formatActivityTime(entry.createdAt) })) : [];
+  const projects = available.projects ? activeProjects.slice(0, 4).map((project) => ({
     name: project.name,
     department: project.department?.name || 'Unassigned',
     status: project.status,
-    progress: project.progress || 0,
+    progress: project.progress,
     lead: project.owner?.name || 'Unassigned',
     deadline: project.deadline ? new Date(project.deadline).toLocaleDateString() : 'Not set',
-  }));
+  })) : [];
   const roleName = user?.roleId?.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Team Member';
 
   return (
@@ -86,10 +91,9 @@ export default function Dashboard() {
       <header className="page-header">
         <div>
           <p className="eyebrow">Organization overview</p>
-          <h1>Good morning, {user?.name.split(' ')[0]}.</h1>
+          <h1>Welcome, {user?.name?.split(' ')[0] || 'Team member'}.</h1>
           <p>{roleName} workspace · {departmentSummary.length ? `${departmentSummary.length} departments` : 'Department overview unavailable for this role'}.</p>
         </div>
-        <Button variant="primary" icon="plus">New project</Button>
       </header>
 
       {error && <p className="auth-error" role="alert">{error}</p>}
@@ -100,20 +104,19 @@ export default function Dashboard() {
 
       <section className="dashboard-grid dashboard-grid-primary">
         <article className="card">
-          <div className="card-header"><h2>Department overview</h2><span>Updated just now</span></div>
+          <div className="card-header"><h2>Department overview</h2><span>Live department records</span></div>
           <div className="card-body department-grid">
-            {loading ? <p className="empty-state">Loading department records…</p> : departmentSummary.map((department) => (
+            {loading ? <p className="empty-state">Loading department records…</p> : departmentSummary.length ? departmentSummary.map((department) => (
               <div className="department-card" key={department.name}>
                 <div className="department-card-top">
                   <span className="avatar small">{department.name.slice(0, 2).toUpperCase()}</span>
                   <span className="status active">{department.members ?? '—'} members</span>
                 </div>
                 <h3>{department.name}</h3>
-                <p>{department.lead} · {department.activeProjects} active projects</p>
-                <div className="workload-row"><span>Open tasks</span><strong>{department.workload}</strong></div>
-                <div className="workload-track"><span style={{ width: `${Math.min(department.workload * 10, 100)}%` }} /></div>
+                <p>{department.lead} · {department.activeProjects ?? '—'} active projects</p>
+                <div className="workload-row"><span>Open tasks</span><strong>{department.workload ?? '—'}</strong></div>
               </div>
-            ))}
+            )) : <p className="empty-state">No department records are available.</p>}
           </div>
         </article>
 
