@@ -26,6 +26,8 @@ function setRefreshCookie(response, refreshToken) {
 }
 
 export async function register(request, response) {
+  console.log('[register] POST /auth/register reached');
+
   const user = await registerUser(request.body);
   await recordAudit({ actorId: user.id, action: 'user_registered', targetType: 'user', result: 'success', details: 'Account registered; email verification required', ipAddress: request.ip, userAgent: request.get('user-agent') });
   const { token } = await issueEmailVerificationToken(user);
