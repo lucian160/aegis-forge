@@ -30,8 +30,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await authService.logout();
+    const request = authService.logout();
     setUser(null);
+    await request;
   };
 
   const value = useMemo(() => ({ user, loading, login, logout }), [user, loading]);

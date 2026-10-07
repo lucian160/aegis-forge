@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/auth';
@@ -13,6 +13,7 @@ export default function Login() {
   const [resending, setResending] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const { user, login } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
 
   if (user) return <Navigate to="/dashboard" replace />;
@@ -67,6 +68,7 @@ export default function Login() {
       <p className="auth-form-intro">Sign in with your organization work email to continue to your workspace.</p>
 
       <form className="auth-form" onSubmit={handleSubmit}>
+        {location.state?.logoutError && <p className="auth-error" role="alert">The server could not confirm session revocation. You have been signed out on this device.</p>}
         <label>
           Work email
           <input autoComplete="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />

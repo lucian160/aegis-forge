@@ -45,8 +45,13 @@ export async function refreshSession() {
 }
 
 export async function logout() {
-  await apiClient.request('/auth/logout', { method: 'POST' }, { auth: true }).catch(() => {});
+  const logoutRequest = apiClient.request('/auth/logout', { method: 'POST' }, { auth: true });
   apiClient.clearSession();
+  try {
+    await logoutRequest;
+  } finally {
+    apiClient.clearSession();
+  }
 }
 
 export async function getProfile() {

@@ -13,6 +13,7 @@ const icons = {
   menu: <><path d="M4 7h16M4 12h16M4 17h16"/></>,
   plus: <path d="M12 5v14M5 12h14"/>,
   arrow: <path d="m9 18 6-6-6-6"/>,
+  logout: <><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></>,
 };
 
 export default function Icon({ name, size = 18 }) {

@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { navigation } from '../data/navigation';
 import { roles } from '../data/roles';
@@ -6,12 +7,32 @@ import { canAccessScope } from '../data/permissions';
 import Icon from './Icon';
 
 export default function Sidebar({ open, onClose, unreadCount = 0 }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
   const initials = user?.name?.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || '?';
   const roleName = roles.find((role) => role.id === user?.roleId)?.name
     || user?.roleId?.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
     || 'Role unavailable';
   const visibleNavigation = navigation.filter((item) => !item.scope || canAccessScope(user?.roleId, item.scope));
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    onClose();
+    let logoutError = false;
+    try {
+      await logout();
+    } catch {
+      logoutError = true;
+    } finally {
+      navigate('/login', {
+        replace: true,
+        state: logoutError ? { logoutError: true } : null,
+      });
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -50,6 +71,10 @@ export default function Sidebar({ open, onClose, unreadCount = 0 }) {
             <span className="avatar">{initials}</span>
             <span><strong>{user?.name || 'Account unavailable'}</strong><span>{roleName}</span></span>
           </div>
+          <button className="nav-link sidebar-logout" type="button" onClick={handleLogout} disabled={loggingOut} aria-busy={loggingOut}>
+            <span className="nav-icon"><Icon name="logout" /></span>
+            <span>{loggingOut ? 'Logging out…' : 'Log out'}</span>
+          </button>
         </div>
       </aside>
       <div className={`mobile-overlay ${open ? 'visible' : ''}`} aria-hidden="true" onClick={onClose} />
