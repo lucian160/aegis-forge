@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/Icon';
+import aegisForgeLogo from '../assets/home-logo.jpg';
 import { publicDepartments } from '../data/publicDepartments.js';
 import { submitContactMessage } from '../services/contactApi';
 import '../styles/landing.css';
@@ -60,7 +61,7 @@ export default function LandingPage() {
     <main className="landing-page">
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="AEGIS FORGE SYSTEM home" onClick={closeMenu}>
-          <span className="landing-brand-mark" aria-hidden="true"><i /><i /><i /><i /></span>
+          <img className="landing-brand-logo" src={aegisForgeLogo} alt="AEGIS FORGE SYSTEM logo" />
           <span><strong>AEGIS FORGE</strong><small>SYSTEM</small></span>
         </Link>
 
@@ -69,10 +70,12 @@ export default function LandingPage() {
         </button>
 
         <nav className={`landing-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Public navigation">
-          <a href="#about" onClick={closeMenu}>About</a>
-          <a href="#capabilities" onClick={closeMenu}>What we do</a>
-          <a href="#departments" onClick={closeMenu}>Departments</a>
-          <Link to="/work-with-us" onClick={closeMenu}>Careers</Link>
+          <Link to="/" onClick={closeMenu}>Home</Link>
+          <Link to="/about" onClick={closeMenu}>About</Link>
+          <a href="#capabilities" onClick={closeMenu}>What We Do</a>
+          <a href="#departments" onClick={closeMenu}>Field Operations</a>
+          <Link to="/about#principles" onClick={closeMenu}>Principles</Link>
+          <Link to="/work-with-us" onClick={closeMenu}>Work With Us</Link>
           <a className="landing-nav-contact" href="#contact" onClick={closeMenu}>Contact</a>
           <Link className="landing-login" to="/register" onClick={closeMenu}>Register</Link>
           <Link className="landing-login" to="/login" onClick={closeMenu}>Login <Icon name="arrow" size={15} /></Link>
@@ -98,16 +101,17 @@ export default function LandingPage() {
       </section>
 
       <section className="landing-intro landing-section" id="about">
-        <div className="landing-section-label"><span>01</span> About AEGIS FORGE</div>
+        <div className="landing-section-label"><span>01</span> About AEGIS FORGE SYSTEM</div>
         <div className="landing-intro-copy">
-          <h2>Good technology is a team effort.</h2>
+          <h2>Privately owned. Nigerian. Engineering-led.</h2>
           <div>
-            <p>AEGIS FORGE is a technology organization built to bring good ideas into the world as useful digital products and services.</p>
-            <p>We exist to make complex work clearer: bringing specialists together, giving each discipline room to contribute, and keeping projects moving from first question to thoughtful delivery.</p>
-            <p>Designers, engineers, researchers, product partners, and business teams work side by side. Shared context helps each person focus on their craft while moving toward one outcome.</p>
+            <p>AEGIS FORGE SYSTEM is a privately owned Nigerian defence technology organization focused on designing, engineering, prototyping, and retaining ownership of proprietary hardware, software, and field systems.</p>
+            <p>We believe technological sovereignty begins with the ability to build what we depend on. We bring together engineers, programmers, cybersecurity specialists, field operators, and technical builders to develop technology for demanding operational environments.</p>
+            <p>We design. We engineer. We prototype. We own what we build.</p>
+            <Link className="landing-button landing-button-quiet landing-about-cta" to="/about">READ OUR STORY <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
-        <div className="landing-values" aria-label="How we work"><span>Different expertise</span><i /><span>Shared direction</span><i /><span>Useful outcomes</span></div>
+        <div className="landing-values" aria-label="How we work"><span>Independent</span><i /><span>Technological sovereignty</span><i /><span>Proprietary systems</span></div>
       </section>
 
       <section className="landing-capabilities landing-section" id="capabilities">
@@ -186,7 +190,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="landing-footer">
-        <div className="landing-footer-brand"><Link className="landing-brand" to="/" aria-label="AEGIS FORGE SYSTEM home"><span className="landing-brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><span><strong>AEGIS FORGE</strong><small>SYSTEM</small></span></Link><p>A collaborative technology organization building useful digital products and services.</p></div>
+        <div className="landing-footer-brand"><Link className="landing-brand" to="/" aria-label="AEGIS FORGE SYSTEM home"><img className="landing-brand-logo" src={aegisForgeLogo} alt="AEGIS FORGE SYSTEM logo" /><span><strong>AEGIS FORGE</strong><small>SYSTEM</small></span></Link><p>A collaborative technology organization building useful digital products and services.</p></div>
         <div className="landing-footer-nav"><strong>Explore</strong><a href="#about">About</a><a href="#capabilities">What we do</a><a href="#departments">Departments</a><Link to="/work-with-us">Join the team</Link></div>
         <div className="landing-footer-nav"><strong>Connect</strong><a href="#contact">Contact</a><Link to="/work-with-us">Opportunities</Link><Link to="/privacy">Privacy Policy</Link><Link to="/login">Team login</Link></div>
         <div className="landing-footer-bottom"><span>© {new Date().getFullYear()} AEGIS FORGE SYSTEM</span><span>Built by people, for people.</span></div>

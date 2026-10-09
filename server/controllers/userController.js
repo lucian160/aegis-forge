@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import Department from '../models/Department.js';
 import mongoose from 'mongoose';
 import { recordAudit } from '../services/auditService.js';
+import { createNotification } from '../services/notificationService.js';
 import { roleIds } from '../../src/data/roles.js';
 import { canAssignUserDepartment, canManageUserRoleTransition, getAssignableUserRoles } from '../middleware/authorizationMiddleware.js';
 
@@ -164,9 +165,35 @@ export async function updateUser(request, response) {
   if (departmentChanged) {
     const scopeDepartment = nextDepartmentId || previousDepartmentId || actor.departmentId;
     await recordAudit({ actorId: actor.id, action: 'department_changed', targetType: 'user', targetId: user.id, result: 'success', department: scopeDepartment, details: `Department changed from ${previousDepartmentId || 'unassigned'} to ${nextDepartmentId || 'unassigned'}`, ipAddress: request.ip, userAgent: request.get('user-agent') });
+    await createNotification({
+      userId: user.id,
+      departmentId: nextDepartmentId || previousDepartmentId || actor.departmentId,
+      type: 'department',
+      title: 'Department updated',
+      message: `Your department assignment changed from ${previousDepartmentId ? (await Department.findById(previousDepartmentId).select('name').then((department) => department?.name || 'your previous department')) : 'unassigned'} to ${nextDepartmentId ? (await Department.findById(nextDepartmentId).select('name').then((department) => department?.name || 'your new department')) : 'unassigned'}.`,
+      related: user.id,
+      email: user.email ? {
+        to: user.email,
+        subject: 'AEGIS FORGE department update',
+        text: `Your department assignment has been updated.`,
+      } : null,
+    });
   }
   if (roleChanged) {
     await recordAudit({ actorId: actor.id, action: 'role_changed', targetType: 'user', targetId: user.id, result: 'success', department: user.departmentId || previousDepartmentId || actor.departmentId, details: `Role changed from ${previousRoleId} to ${resolvedRoleId}`, ipAddress: request.ip, userAgent: request.get('user-agent') });
+    await createNotification({
+      userId: user.id,
+      departmentId: user.departmentId || previousDepartmentId || actor.departmentId,
+      type: 'role',
+      title: 'Role updated',
+      message: `Your role was updated from ${previousRoleId} to ${resolvedRoleId}.`,
+      related: user.id,
+      email: user.email ? {
+        to: user.email,
+        subject: 'AEGIS FORGE role update',
+        text: `Your role was updated from ${previousRoleId} to ${resolvedRoleId}.`,
+      } : null,
+    });
   }
   if (!roleChanged && !departmentChanged) {
     await recordAudit({ actorId: actor.id, action: 'user_updated', targetType: 'user', targetId: user.id, department: user.departmentId, details: `Updated user ${user.email}`, ipAddress: request.ip, userAgent: request.get('user-agent') });

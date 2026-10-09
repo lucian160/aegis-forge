@@ -29,32 +29,12 @@
   border-bottom: 1px solid var(--border-soft);
 }
 
-.brand-mark {
-  position: relative;
-  display: grid;
+.brand-logo {
+  display: block;
   width: 30px;
   height: 30px;
-  place-items: center;
-  border: 1px solid rgba(139, 255, 176, 0.35);
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.brand-mark::before,
-.brand-mark::after {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border: 1px solid currentColor;
-  content: '';
-  transform: rotate(45deg);
-}
-
-.brand-mark::after {
-  width: 5px;
-  height: 5px;
-  background: currentColor;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand-name {
@@ -2093,7 +2073,11 @@
 
 @media (max-width: 1050px) {
   .stat-grid,
-  .department-metrics {
+  .department-metrics,
+  .position-grid,
+  .applicant-grid,
+  .content-grid,
+  .team-grid-large {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2112,8 +2096,26 @@
   }
 
   .department-grid,
-  .project-grid {
+  .project-grid,
+  .position-grid,
+  .applicant-grid,
+  .content-grid,
+  .team-grid-large {
     grid-template-columns: 1fr;
+  }
+
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel > div:first-child {
+    padding: 24px;
+  }
+
+  .hero-visual {
+    min-height: 180px;
+    border-top: 1px solid var(--border-soft);
+    border-left: 0;
   }
 
   .sidebar {
@@ -2180,6 +2182,15 @@
     gap: 12px;
   }
 
+  .application-layout,
+  .detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
   .mobile-overlay {
     position: fixed;
     inset: 0;
@@ -2202,11 +2213,17 @@
     grid-template-columns: 1fr;
   }
 
-  .topbar-actions .icon-button:first-child {
-    display: none;
-  }
-
   .page-header h1 {
     font-size: 25px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+  }
+
+  .filter-bar .search-box,
+  .filter-select {
+    width: 100%;
+    min-width: 0;
   }
 }

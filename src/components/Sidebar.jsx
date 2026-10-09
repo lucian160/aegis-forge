@@ -5,6 +5,7 @@ import { navigation } from '../data/navigation';
 import { roles } from '../data/roles';
 import { canAccessScope } from '../data/permissions';
 import Icon from './Icon';
+import aegisForgeLogo from '../assets/home-logo.jpg';
 
 export default function Sidebar({ open, onClose, unreadCount = 0 }) {
   const { user, logout } = useAuth();
@@ -38,7 +39,7 @@ export default function Sidebar({ open, onClose, unreadCount = 0 }) {
     <>
       <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Primary navigation">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true" />
+          <img className="brand-logo" src={aegisForgeLogo} alt="" />
           <span>
             <span className="brand-name">AEGIS FORGE</span>
             <span className="brand-subtitle">Team operations</span>

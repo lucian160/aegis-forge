@@ -1,7 +1,9 @@
 import RecruitmentApplication from '../models/RecruitmentApplication.js';
 import Department from '../models/Department.js';
+import User from '../models/User.js';
 import { positions } from '../../src/data/recruitment.js';
 import { requirePrivacyConsent } from '../services/privacyConsent.js';
+import { createNotificationsForUsers } from '../services/notificationService.js';
 
 function invalidApplication() {
   return Object.assign(new Error('Please check your application details and try again.'), { status: 400 });
@@ -54,6 +56,29 @@ export async function submitApplication(request, response) {
     status: 'Submitted',
     submittedAt: new Date(),
     ...consent,
+  });
+
+  const staffRecipients = await User.find({
+    isActive: true,
+    $or: [
+      { roleId: 'super_admin' },
+      { roleId: 'organization_leader' },
+      { roleId: 'department_leader', departmentId: department._id },
+    ],
+  }).select('_id email');
+
+  await createNotificationsForUsers({
+    userIds: staffRecipients.map((user) => user._id.toString()),
+    departmentId: department._id.toString(),
+    type: 'recruitment',
+    title: 'Recruitment application received',
+    message: `${normalized.name} submitted a ${position?.title || 'talent network'} application for ${department.code}.`,
+    related: application._id,
+    emailByUser: Object.fromEntries(staffRecipients.filter((user) => user.email).map((user) => [user._id.toString(), {
+      to: user.email,
+      subject: 'AEGIS FORGE recruitment application received',
+      text: `${normalized.name} submitted a ${position?.title || 'talent network'} application for ${department.code}.`,
+    }])),
   });
 
   response.status(201).json({ applicationId: application.id, message: 'Your application was submitted successfully.' });

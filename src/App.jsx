@@ -14,6 +14,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const AboutPage = lazy(() => import('./pages/About'));
 const WorkWithUs = lazy(() => import('./pages/WorkWithUs'));
 const PositionDetail = lazy(() => import('./pages/PositionDetail'));
 const ApplicationForm = lazy(() => import('./pages/ApplicationForm'));
@@ -53,6 +54,7 @@ export default function App() {
 
             <Route path="/" element={<LandingPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/work-with-us" element={<WorkWithUs />} />
             <Route path="/work-with-us/application" element={<ApplicationForm />} />
             <Route path="/work-with-us/:positionId" element={<PositionDetail />} />

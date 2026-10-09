@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
+import aegisForgeLogo from '../assets/home-logo.jpg';
 import { PRIVACY_POLICY_VERSION } from '../../shared/privacyPolicy.js';
-import '../styles/privacy.css';
 import '../styles/privacy.css';
 
 const sections = [
@@ -67,7 +67,7 @@ export default function PrivacyPolicy() {
     <main className="privacy-page">
       <header className="privacy-header">
         <Link className="privacy-brand" to="/" aria-label="AEGIS FORGE SYSTEM home">
-          <span className="privacy-mark" aria-hidden="true"><i /><i /><i /><i /></span>
+          <img className="privacy-brand-logo" src={aegisForgeLogo} alt="AEGIS FORGE SYSTEM logo" />
           <span><strong>AEGIS FORGE</strong><small>SYSTEM</small></span>
         </Link>
         <nav aria-label="Public navigation">

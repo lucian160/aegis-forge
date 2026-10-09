@@ -78,7 +78,10 @@ export async function listResources(request, response) {
 
 export async function getResource(request, response) {
   const resource = resourceFor(request.params.resource);
-  const document = await findOneAllowed(resource.model, request.params.id, request, departmentFilter(request, resource));
+  const allowedQuery = resource.scope === 'notifications'
+    ? { user: request.user.id }
+    : departmentFilter(request, resource);
+  const document = await findOneAllowed(resource.model, request.params.id, request, allowedQuery);
   const populated = await populateRelations(document);
   response.json({ [resource.name]: populated });
 }
@@ -97,6 +100,15 @@ export async function updateResourceHandler(request, response) {
   if (!await canMutateDepartmentRecord(request, resource, response)) return;
   const body = normalizeBody(request.body);
   if (rejectDepartmentMembershipFields(resource, body, response)) return;
+  if (resource.model === Notification) {
+    const existingNotification = await findOneAllowed(Notification, request.params.id, request, { user: request.user.id });
+    if (body.user && body.user !== request.user.id.toString()) {
+      return response.status(403).json({ error: 'You cannot assign a notification to another user.' });
+    }
+    if (body.department && body.department !== existingNotification.department?.toString()) {
+      return response.status(403).json({ error: 'You cannot change another user\'s department notification.' });
+    }
+  }
   const document = await updateResource(resource.model, request.params.id, body, request);
   const populated = await populateRelations(document);
   response.json({ [resource.name]: populated });
@@ -105,7 +117,13 @@ export async function updateResourceHandler(request, response) {
 export async function deleteResourceHandler(request, response) {
   const resource = resourceFor(request.params.resource);
   if (!await canMutateDepartmentRecord(request, resource, response)) return;
-  const document = await deleteResource(resource.model, request.params.id, request);
+  const document = resource.scope === 'notifications'
+    ? await findOneAllowed(resource.model, request.params.id, request, { user: request.user.id })
+    : await deleteResource(resource.model, request.params.id, request);
+  if (resource.scope === 'notifications') {
+    await Notification.deleteOne({ _id: document.id, user: request.user.id });
+    return response.json({ deleted: resource.name, id: document.id });
+  }
   response.json({ deleted: resource.name, id: document.id });
 }
 

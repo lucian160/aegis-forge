@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import Meeting from '../models/Meeting.js';
-import Notification from '../models/Notification.js';
 import Activity from '../models/Activity.js';
 import User from '../models/User.js';
 import Department from '../models/Department.js';
 import Project from '../models/Project.js';
+import { createNotificationsForUsers } from '../services/notificationService.js';
 import { canManageResource, filterByDepartment } from '../middleware/authorizationMiddleware.js';
 
 function meetingPayload(body, organizerId) {
@@ -35,13 +35,14 @@ async function recordMeetingActivity(request, meeting, action, details) {
 
 async function notifyAttendees(request, meeting, title, message) {
   const attendeeIds = meeting.attendees.map((attendee) => attendee.toString());
-  await Promise.all(attendeeIds.map((attendeeId) => Notification.create({
-    user: attendeeId,
+  await createNotificationsForUsers({
+    userIds: attendeeIds,
+    departmentId: meeting.department?.toString ? meeting.department.toString() : undefined,
     type: 'meeting',
     title,
     message,
     related: meeting.id,
-  })));
+  });
 }
 
 export async function listMeetings(request, response) {
@@ -139,7 +140,14 @@ export async function addMeetingParticipant(request, response) {
   if (!meeting.attendees.some((attendee) => attendee.toString() === user.id)) meeting.attendees.push(user.id);
   await meeting.save();
   await recordMeetingActivity(request, meeting, 'participant added', `Added ${user.name} to ${meeting.title}`);
-  await Notification.create({ user: user.id, type: 'meeting', title: 'Meeting invitation', message: `${meeting.title} was scheduled for ${meeting.startsAt.toLocaleString()}.`, related: meeting.id });
+  await createNotificationsForUsers({
+    userIds: [user.id],
+    departmentId: meeting.department?.toString ? meeting.department.toString() : undefined,
+    type: 'meeting',
+    title: 'Meeting invitation',
+    message: `${meeting.title} was scheduled for ${meeting.startsAt.toLocaleString()}.`,
+    related: meeting.id,
+  });
   response.json({ meeting: await meeting.populate('attendees', 'name email roleId department') });
 }
 
@@ -152,5 +160,13 @@ export async function removeMeetingParticipant(request, response) {
   meeting.attendees = meeting.attendees.filter((attendee) => attendee.toString() !== user.id);
   await meeting.save();
   await recordMeetingActivity(request, meeting, 'participant removed', `Removed ${user.name} from ${meeting.title}`);
+  await createNotificationsForUsers({
+    userIds: [user.id],
+    departmentId: meeting.department?.toString ? meeting.department.toString() : undefined,
+    type: 'meeting',
+    title: 'Meeting update',
+    message: `${meeting.title} has been updated and you are no longer listed as a participant.`,
+    related: meeting.id,
+  });
   response.json({ meeting: await meeting.populate('attendees', 'name email roleId department') });
 }

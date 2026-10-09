@@ -20,6 +20,9 @@ export async function findOneAllowed(Model, id, request, allowedQuery = {}) {
   if (allowedQuery.owner && resource.owner?.toString() !== allowedQuery.owner) {
     throw Object.assign(new Error('Resource not found.'), { status: 404 });
   }
+  if (allowedQuery.user && resource.user?.toString() !== allowedQuery.user.toString()) {
+    throw Object.assign(new Error('Resource not found.'), { status: 404 });
+  }
   request.resource = resource;
   return resource;
 }

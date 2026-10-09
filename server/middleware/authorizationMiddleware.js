@@ -64,7 +64,7 @@ export { canAssignUserDepartment, canManageUserRoleTransition, getAssignableUser
 export function canManageResource(request, document) {
   if (!document) return false;
   if (manageRoles.has(request.user?.roleId)) return true;
-  const owner = document.owner || document.author || document.uploadedBy || document.organizer;
+  const owner = document.owner || document.author || document.uploadedBy || document.organizer || document.user;
   return owner?.toString() === request.user?.id;
 }
 
