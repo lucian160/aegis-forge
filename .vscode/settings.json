@@ -3,6 +3,26 @@
         "/^git status --short && printf '\\\\n-- project files --\\\\n' && find src -maxdepth 3 -type f -print \\| sort && printf '\\\\n-- package scripts --\\\\n' && node -e \"console\\.log\\(JSON\\.stringify\\(require\\('\\./package\\.json'\\)\\.scripts,null,2\\)\\)\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^git status --short && printf '\\\\n--- root files ---\\\\n' && ls -la$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^npm run preview -- --host 127\\.0\\.0\\.1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node --check server/controllers/contactController\\.js && node --check server/services/emailTemplates\\.js && node --check server/models/ContactMessage\\.js && node --check shared/contactOptions\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node --input-type=module <<'NODE'\nimport \\{ submitContact \\} from '\\./server/controllers/contactController\\.js';\nimport \\{ createRateLimit \\} from '\\./server/middleware/rateLimitMiddleware\\.js';\n\nconst valid = \\{\n  privacyConsent: true,\n  name: 'Visitor',\n  email: 'visitor@example\\.com',\n  subject: 'Project enquiry',\n  departmentCode: 'GENERAL',\n  message: 'Please discuss this project\\.',\n  enquiryType: 'Project enquiry',\n  preferredDepartment: 'Software and AI Division',\n\\};\nasync function expectBadRequest\\(body, expectedCode\\) \\{\n  try \\{\n    await submitContact\\(\\{ body \\}, \\{\\}\\);\n    return \\{ ok: false, reason: 'request unexpectedly passed validation' \\};\n  \\} catch \\(error\\) \\{\n    return \\{ ok: error\\.status === 400 && \\(!expectedCode \\|\\| error\\.publicCode === expectedCode\\), status: error\\.status, code: error\\.publicCode \\|\\| null \\};\n  \\}\n\\}\nconst consentFailure = await expectBadRequest\\(\\{ \\.\\.\\.valid, privacyConsent: false \\}, 'PRIVACY_CONSENT_REQUIRED'\\);\nconst emailFailure = await expectBadRequest\\(\\{ \\.\\.\\.valid, email: 'not-an-email' \\}\\);\nconst departmentFailure = await expectBadRequest\\(\\{ \\.\\.\\.valid, preferredDepartment: 'Unlisted Division' \\}\\);\nconst organizationFailure = await expectBadRequest\\(\\{ \\.\\.\\.valid, organization: 'x'\\.repeat\\(151\\) \\}\\);\nlet nextCalls = 0;\nlet rateLimited = false;\nconst limiter = createRateLimit\\(\\{ limit: 5, windowMs: 60_000 \\}\\);\nfor \\(let attempt = 0; attempt < 6; attempt \\+= 1\\) \\{\n  const response = \\{ status\\(code\\) \\{ this\\.statusCode = code; return this; \\}, json\\(body\\) \\{ this\\.body = body; return this; \\} \\};\n  limiter\\(\\{ ip: 'contact-test' \\}, response, \\(\\) => \\{ nextCalls \\+= 1; \\}\\);\n  if \\(response\\.statusCode === 429\\) rateLimited = true;\n\\}\nconst report = \\{ consentFailure, emailFailure, departmentFailure, organizationFailure, rateLimitAllowsFive: nextCalls === 5, rateLimitRejectsSixth: rateLimited \\};\nconsole\\.log\\(JSON\\.stringify\\(report\\)\\);\nif \\(Object\\.values\\(report\\)\\.some\\(\\(result\\) => result === false \\|\\| \\(typeof result === 'object' && result\\.ok === false\\)\\)\\) process\\.exitCode = 1;\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

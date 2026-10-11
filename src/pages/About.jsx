@@ -36,7 +36,12 @@ export default function AboutPage() {
       description.setAttribute('name', 'description');
       document.head.appendChild(description);
     }
-    description.setAttribute('content', 'Aegis Forge System is a privately owned Nigerian defence technology organization focused on sovereign hardware, software, and field systems.');
+    const aboutDescription = 'Aegis Forge System is a privately owned Nigerian defence technology organization focused on sovereign hardware, software, and field systems.';
+    description.setAttribute('content', aboutDescription);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'About | Aegis Forge System');
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', aboutDescription);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', 'About | Aegis Forge System');
+    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', aboutDescription);
   }, []);
 
   return (

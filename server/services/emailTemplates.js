@@ -16,15 +16,32 @@ function layout({ preheader, heading, body, buttonLabel, buttonUrl, footer = 'AE
   return `<!doctype html><html lang="en"><body style="margin:0;background:#eef1ed;font-family:Arial,sans-serif;color:#172019"><span style="display:none;max-height:0;overflow:hidden">${escapeHtml(preheader)}</span><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef1ed;padding:34px 12px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #dce2da"><tr><td style="padding:27px 32px;background:#17211b;color:#fff"><div style="font-size:12px;letter-spacing:1.5px;font-weight:700">AEGIS FORGE SYSTEM</div><div style="margin-top:5px;color:#a4f276;font-size:11px">Technology, built together</div></td></tr><tr><td style="padding:34px 32px 31px"><h1 style="margin:0 0 16px;font-size:25px;line-height:1.2;color:#172019">${escapeHtml(heading)}</h1>${body}${button}<p style="margin:28px 0 0;border-top:1px solid #e1e6df;padding-top:18px;color:#687269;font-size:12px;line-height:1.6">${escapeHtml(footer)}</p></td></tr></table></td></tr></table></body></html>`;
 }
 
-export function contactNotificationTemplate({ name, email, subject, department, message }) {
+export function contactNotificationTemplate({
+  name, email, subject, department, organization = '', enquiryType = '',
+  preferredDepartment = '', budgetTimeline = '', message,
+}) {
   const escapedMessage = escapeHtml(message).replace(/\r?\n/g, '<br>');
+  const optionalRows = [
+    ['Organisation', organization],
+    ['Enquiry type', enquiryType],
+    ['Preferred department', preferredDepartment],
+    ['Budget or timeline', budgetTimeline],
+  ].filter(([, value]) => value)
+    .map(([label, value]) => `<tr><td style="padding:5px 0;color:#687269;width:130px">${escapeHtml(label)}</td><td style="padding:5px 0">${escapeHtml(value)}</td></tr>`)
+    .join('');
   const html = layout({
     preheader: `New inquiry for ${department}`,
     heading: 'A new contact inquiry',
-    body: `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;line-height:1.7"><tr><td style="padding:5px 0;color:#687269;width:130px">From</td><td style="padding:5px 0">${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</td></tr><tr><td style="padding:5px 0;color:#687269">Department</td><td style="padding:5px 0">${escapeHtml(department)}</td></tr><tr><td style="padding:5px 0;color:#687269">Subject</td><td style="padding:5px 0">${escapeHtml(subject)}</td></tr></table><div style="margin-top:20px;padding:17px;background:#f3f6f1;line-height:1.7;white-space:normal">${escapedMessage}</div>`,
+    body: `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;line-height:1.7"><tr><td style="padding:5px 0;color:#687269;width:130px">From</td><td style="padding:5px 0">${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</td></tr><tr><td style="padding:5px 0;color:#687269">Department inbox</td><td style="padding:5px 0">${escapeHtml(department)}</td></tr><tr><td style="padding:5px 0;color:#687269">Subject</td><td style="padding:5px 0">${escapeHtml(subject)}</td></tr>${optionalRows}</table><div style="margin-top:20px;padding:17px;background:#f3f6f1;line-height:1.7;white-space:normal">${escapedMessage}</div>`,
     footer: 'Reply directly to this email to contact the sender.',
   });
-  const text = `New contact inquiry\nFrom: ${name} <${email}>\nDepartment: ${department}\nSubject: ${subject}\n\n${message}\n\nReply directly to this email to contact the sender.`;
+  const metadata = [
+    organization && `Organisation: ${organization}`,
+    enquiryType && `Enquiry type: ${enquiryType}`,
+    preferredDepartment && `Preferred department: ${preferredDepartment}`,
+    budgetTimeline && `Budget or timeline: ${budgetTimeline}`,
+  ].filter(Boolean).join('\n');
+  const text = `New contact inquiry\nFrom: ${name} <${email}>\nDepartment inbox: ${department}\nSubject: ${subject}${metadata ? `\n${metadata}` : ''}\n\n${message}\n\nReply directly to this email to contact the sender.`;
   return { html, text };
 }
 

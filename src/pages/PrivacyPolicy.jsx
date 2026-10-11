@@ -7,7 +7,7 @@ const sections = [
   {
     title: 'Information we may collect',
     paragraphs: [
-      'The information collected depends on the feature you use. Contact requests may include your name, email address, subject, selected department, and message. Team applications may include the contact details, role information, links, and answers you submit. A resume file selected in the current application form is not uploaded or stored.',
+      'The information collected depends on the feature you use. Contact requests may include your name, email address, organisation, enquiry type, preferred department, optional budget or timeline, subject, and message. Team applications may include the contact details, role information, links, and answers you submit. A resume file selected in the current application form is not uploaded or stored.',
       'When you create or use an account, we process account information and the authentication and security information needed to operate it. Technical details such as request IP address and user-agent may be recorded for security and activity accountability.',
     ],
   },
